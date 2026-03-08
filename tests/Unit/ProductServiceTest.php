@@ -20,7 +20,7 @@ class ProductServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_creates_product_and_stores_image(): void
+    public function testItCreatesProductAndStoresImage(): void
     {
         Storage::fake('public');
         $offer = Offer::factory()->create();
@@ -42,7 +42,7 @@ class ProductServiceTest extends TestCase
         Storage::disk('public')->assertExists($product->image);
     }
 
-    public function test_it_updates_product_and_replaces_image(): void
+    public function testItUpdatesProductAndReplacesImage(): void
     {
         Storage::fake('public');
 

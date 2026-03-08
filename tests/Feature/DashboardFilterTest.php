@@ -14,7 +14,7 @@ class DashboardFilterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_dashboard_filters_by_name_and_slug(): void
+    public function testDashboardFiltersByNameAndSlug(): void
     {
         $user = User::factory()->admin()->create();
 
@@ -40,7 +40,7 @@ class DashboardFilterTest extends TestCase
         $response->assertDontSee('Beta Offer');
     }
 
-    public function test_dashboard_filters_by_state(): void
+    public function testDashboardFiltersByState(): void
     {
         $user = User::factory()->admin()->create();
 
@@ -65,7 +65,7 @@ class DashboardFilterTest extends TestCase
         $response->assertDontSee('Draft Offer');
     }
 
-    public function test_dashboard_filter_button_submits_form(): void
+    public function testDashboardFilterButtonSubmitsForm(): void
     {
         $user = User::factory()->admin()->create();
 

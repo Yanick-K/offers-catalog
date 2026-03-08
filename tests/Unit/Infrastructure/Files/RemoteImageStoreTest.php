@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class RemoteImageStoreTest extends TestCase
 {
-    public function test_store_falls_back_to_svg_on_failure(): void
+    public function testStoreFallsBackToSvgOnFailure(): void
     {
         Storage::fake('public');
         Http::fake([

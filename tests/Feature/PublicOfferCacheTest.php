@@ -13,7 +13,7 @@ class PublicOfferCacheTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_cache_version_is_bumped_on_offer_create(): void
+    public function testCacheVersionIsBumpedOnOfferCreate(): void
     {
         Cache::forget('public_offers:version');
 

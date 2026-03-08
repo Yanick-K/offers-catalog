@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class LocalImageStoreTest extends TestCase
 {
-    public function test_store_creates_svg_locally(): void
+    public function testStoreCreatesSvgLocally(): void
     {
         Storage::fake('public');
 

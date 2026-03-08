@@ -14,7 +14,7 @@ class ImageCleanupTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_offer_old_image_is_deleted_on_update(): void
+    public function testOfferOldImageIsDeletedOnUpdate(): void
     {
         Storage::fake('public');
 
@@ -27,7 +27,7 @@ class ImageCleanupTest extends TestCase
         Storage::disk('public')->assertMissing('offers/old.jpg');
     }
 
-    public function test_product_old_image_is_deleted_on_update(): void
+    public function testProductOldImageIsDeletedOnUpdate(): void
     {
         Storage::fake('public');
 

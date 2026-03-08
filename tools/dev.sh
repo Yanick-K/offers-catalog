@@ -238,8 +238,12 @@ fi
 rm -f "$SERVER_PID_FILE" "$QUEUE_PID_FILE"
 
 if $DO_SETUP; then
+  if [ ! -f .env ] && [ -f .env.example ]; then
+    run_step "copy .env.example" sh -c "cp .env.example .env"
+  fi
   run_step "composer install" composer install
   run_step "npm ci" npm ci
+  run_step "npm run build" npm run build
   run_step "artisan key:generate" php artisan key:generate
   if $DO_RESET; then
     run_step "artisan migrate:fresh --seed" php artisan migrate:fresh --seed

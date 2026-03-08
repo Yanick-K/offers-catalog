@@ -85,12 +85,24 @@ Prérequis
 - Node 18+ et npm
 - MySQL/MariaDB (ou SQLite si vous préférez pour l’exercice)
 
-Étapes rapides (local)
+Installation
+
+Option rapide:
+
+- `make setup` (copie .env, dépendances, build, key:generate, migrate --seed, storage:link).
+
+Option manuelle
 1. Copier l’environnement
    - cp .env.example .env
    - Configurer la base de données (DB_*) et le stockage local.
+   - Option SQLite: DB_CONNECTION=sqlite, DB_DATABASE=database/database.sqlite, puis `touch database/database.sqlite`.
 2. Installer et initialiser
-   - make setup
+   - composer install
+   - npm ci
+   - npm run build
+   - php artisan key:generate
+   - php artisan migrate --seed
+   - php artisan storage:link
 3. Builder les assets (si UI utilisée)
    - npm run build (ou npm run dev pour le watch)
 4. Lancer l’application
@@ -156,14 +168,10 @@ Tests et qualité
 
 ### Commandes de base (local)
 - `make setup`
-- `make reset`
 - `make dev`
-- `make dev-detach`
 - `make dev-stop`
-- `make lint`
 - `make test-all` (ou `make ci`)
 - `make seed OFFERS=10 PRODUCTS=5` (ou `make seed-base`)
-- `make seed-remote OFFERS=10 PRODUCTS=5`
 
 Plus d'options dans `tools/README.md`.
 

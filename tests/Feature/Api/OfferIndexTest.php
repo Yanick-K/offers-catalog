@@ -15,7 +15,7 @@ class OfferIndexTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_returns_only_published_offers_and_products(): void
+    public function testItReturnsOnlyPublishedOffersAndProducts(): void
     {
         $publishedOffer = Offer::factory()->create(['state' => OfferState::Published->value]);
         Offer::factory()->create(['state' => OfferState::Draft->value]);

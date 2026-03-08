@@ -16,7 +16,7 @@ class OfferManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authenticated_user_can_create_offer(): void
+    public function testAuthenticatedUserCanCreateOffer(): void
     {
         Storage::fake('public');
         $user = User::factory()->admin()->create();

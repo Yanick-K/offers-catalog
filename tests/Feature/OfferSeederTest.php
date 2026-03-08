@@ -14,7 +14,7 @@ class OfferSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_offer_seeder_uses_local_images_without_network(): void
+    public function testOfferSeederUsesLocalImagesWithoutNetwork(): void
     {
         Storage::fake('public');
         Http::fake();

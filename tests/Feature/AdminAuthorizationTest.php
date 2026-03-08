@@ -13,7 +13,7 @@ class AdminAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_non_admin_cannot_access_dashboard(): void
+    public function testNonAdminCannotAccessDashboard(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
 
@@ -22,7 +22,7 @@ class AdminAuthorizationTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_non_admin_cannot_access_offer_management(): void
+    public function testNonAdminCannotAccessOfferManagement(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $offer = Offer::factory()->create();

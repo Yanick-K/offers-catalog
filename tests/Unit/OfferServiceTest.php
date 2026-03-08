@@ -20,7 +20,7 @@ class OfferServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_creates_offer_and_stores_image(): void
+    public function testItCreatesOfferAndStoresImage(): void
     {
         Storage::fake('public');
         $service = $this->app->make(OfferService::class);
@@ -41,7 +41,7 @@ class OfferServiceTest extends TestCase
         Storage::disk('public')->assertExists($offer->image);
     }
 
-    public function test_it_updates_offer_and_replaces_image(): void
+    public function testItUpdatesOfferAndReplacesImage(): void
     {
         Storage::fake('public');
 
@@ -73,7 +73,7 @@ class OfferServiceTest extends TestCase
         $this->assertSame('updated-offer', $offer->slug);
     }
 
-    public function test_it_deletes_offer_and_associated_images(): void
+    public function testItDeletesOfferAndAssociatedImages(): void
     {
         Storage::fake('public');
 
