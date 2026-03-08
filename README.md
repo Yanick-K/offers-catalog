@@ -152,6 +152,7 @@ Tests et qualité
 - Larastan / PHPStan niveau 8 (`phpstan.neon`).
 - Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
 - Laravel Pint déjà présent: `vendor/bin/pint`.
+- Dépendances PHP mises à jour pour corriger des vulnérabilités (composer audit OK).
 
 ### Commandes de base (local)
 - `make setup`

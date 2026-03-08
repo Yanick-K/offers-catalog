@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Observers\OfferObserver;
 use App\Observers\ProductObserver;
 use App\Shared\Files\ImageUploader;
+use Illuminate\Console\Command as ConsoleCommand;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(OfferRepository::class, EloquentOfferRepository::class);
         $this->app->bind(ProductRepository::class, EloquentProductRepository::class);
         $this->app->bind(ImageUploader::class, StorageImageUploader::class);
+        $this->app->resolving(ConsoleCommand::class, function (ConsoleCommand $command, $app): void {
+            $command->setLaravel($app);
+        });
     }
 
     /**
