@@ -12,8 +12,8 @@ enum OfferState: string
     {
         return match ($this) {
             self::Draft => 'Brouillon',
-            self::Published => 'Publie',
-            self::Hidden => 'Masque',
+            self::Published => 'Publié',
+            self::Hidden => 'Masqué',
         };
     }
 

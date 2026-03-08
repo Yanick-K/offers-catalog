@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Offer::class, OfferPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
-        Gate::define('admin', static fn (User $user): bool => $user->is_admin);
+        Gate::define('admin', static fn (User $user): bool => (bool) $user->is_admin);
 
         Offer::observe(OfferObserver::class);
         Product::observe(ProductObserver::class);

@@ -12,7 +12,7 @@ enum ProductState: string
     {
         return match ($this) {
             self::Draft => 'Brouillon',
-            self::Published => 'Publie',
+            self::Published => 'Publié',
             self::Invisible => 'Invisible',
         };
     }

@@ -2,6 +2,8 @@
 import argparse
 import subprocess
 import sys
+import time
+from itertools import cycle
 from pathlib import Path
 
 
@@ -16,12 +18,48 @@ def run(*args):
         sys.exit(result.returncode)
 
 
+GREEN = "\033[32m"
+BOLD_GREEN = "\033[1;32m"
+RESET = "\033[0m"
+ANIMALS = [
+    ("Bunny", ["(\\_/)", "(o.o)", "/   \\"]),
+    ("Cat", ["/\\_/\\", "( o.o )", "> ^ <"]),
+    ("Dog", ["/^-----^\\", "V  o o  V", " \\  Y  /"]),
+    ("Owl", [" ,_,", "(O,O)", "(   )"]),
+]
+ANIMAL_CYCLE = cycle(ANIMALS)
+STEP_INDEX = 0
+
+
+def print_step(label):
+    global STEP_INDEX
+    if STEP_INDEX > 0:
+        print()
+    STEP_INDEX += 1
+    _name, lines = next(ANIMAL_CYCLE)
+    print(f"{GREEN}Step: {label}{RESET}")
+    for line in lines:
+        print(f"{GREEN}{line}{RESET}")
+
+
+def print_finished(elapsed):
+    print(f"\nfinished in: {BOLD_GREEN}{elapsed:.2f}s{RESET}")
+
+
+def step(label, *args):
+    print_step(label)
+    started = time.perf_counter()
+    run(*args)
+    elapsed = time.perf_counter() - started
+    print_finished(elapsed)
+
+
 def cmd_setup():
-    run("composer", "install")
-    run("npm", "ci")
-    run("artisan", "key:generate")
-    run("artisan", "migrate", "--seed")
-    run("artisan", "storage:link")
+    step("composer install", "composer", "install")
+    step("npm ci", "npm", "ci")
+    step("artisan key:generate", "artisan", "key:generate")
+    step("artisan migrate --seed", "artisan", "migrate", "--seed")
+    step("artisan storage:link", "artisan", "storage:link")
 
 
 def cmd_seed(offers, products):
@@ -30,31 +68,37 @@ def cmd_seed(offers, products):
         args.extend(["--offers", str(offers)])
     if products is not None:
         args.extend(["--products", str(products)])
-    run(*args)
+    step("artisan demo:seed", *args)
 
 
 def cmd_ci():
-    run("./vendor/bin/pint", "--test")
-    run("./vendor/bin/phpstan", "analyse")
-    run("./vendor/bin/deptrac", "analyse", "--config-file=deptrac.yaml")
-    run("artisan", "migrate")
-    run("php", "artisan", "test")
+    step("pint --test", "./vendor/bin/pint", "--test")
+    step("phpstan analyse", "./vendor/bin/phpstan", "analyse")
+    step("deptrac analyse", "./vendor/bin/deptrac", "analyse", "--config-file=deptrac.yaml")
+    step("artisan migrate", "artisan", "migrate")
+    step("artisan test", "php", "artisan", "test")
 
 
 def cmd_test():
-    run("artisan", "migrate")
-    run("php", "artisan", "test")
+    step("artisan migrate", "artisan", "migrate")
+    step("artisan test", "php", "artisan", "test")
 
 
 def cmd_dev():
+    print_step("serve (background)")
+    serve_start = time.perf_counter()
     serve = subprocess.Popen([SAIL, "php", "artisan", "serve"])
     try:
-        run("php", "artisan", "queue:work")
+        step("queue:work", "php", "artisan", "queue:work")
+    except SystemExit:
+        raise
     except KeyboardInterrupt:
         pass
     finally:
         serve.terminate()
         serve.wait()
+        elapsed = time.perf_counter() - serve_start
+        print_finished(elapsed)
 
 
 def main():
@@ -68,6 +112,7 @@ def main():
             "logs",
             "setup",
             "migrate",
+            "reset",
             "seed",
             "seed-base",
             "dev",
@@ -85,34 +130,36 @@ def main():
     args = parser.parse_args()
 
     if args.command == "up":
-        run("up", "-d")
+        step("sail up -d", "up", "-d")
     elif args.command == "down":
-        run("down")
+        step("sail down", "down")
     elif args.command == "restart":
-        run("down")
-        run("up", "-d")
+        step("sail down", "down")
+        step("sail up -d", "up", "-d")
     elif args.command == "logs":
-        run("logs", "-f")
+        step("sail logs -f", "logs", "-f")
     elif args.command == "setup":
         cmd_setup()
     elif args.command == "migrate":
-        run("artisan", "migrate")
+        step("artisan migrate", "artisan", "migrate")
+    elif args.command == "reset":
+        step("artisan migrate:fresh --seed", "artisan", "migrate:fresh", "--seed")
     elif args.command == "seed":
         cmd_seed(args.offers, args.products)
     elif args.command == "seed-base":
-        run("artisan", "db:seed")
+        step("artisan db:seed", "artisan", "db:seed")
     elif args.command == "dev":
         cmd_dev()
     elif args.command == "test":
         cmd_test()
     elif args.command == "phpstan":
-        run("./vendor/bin/phpstan", "analyse")
+        step("phpstan analyse", "./vendor/bin/phpstan", "analyse")
     elif args.command == "deptrac":
-        run("./vendor/bin/deptrac", "analyse", "--config-file=deptrac.yaml")
+        step("deptrac analyse", "./vendor/bin/deptrac", "analyse", "--config-file=deptrac.yaml")
     elif args.command == "pint":
-        run("./vendor/bin/pint")
+        step("pint", "./vendor/bin/pint")
     elif args.command == "lint":
-        run("./vendor/bin/pint", "--test")
+        step("pint --test", "./vendor/bin/pint", "--test")
     elif args.command == "ci":
         cmd_ci()
     elif args.command == "test-all":

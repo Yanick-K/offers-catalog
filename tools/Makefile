@@ -3,57 +3,60 @@ SAIL := $(ROOT)/vendor/bin/sail
 OFFERS ?= 3
 PRODUCTS ?= 3
 
-.PHONY: sail-up sail-down sail-restart sail-logs setup migrate seed seed-base dev test phpstan deptrac pint lint ci test-all
+.PHONY: sail-up sail-down sail-restart sail-logs setup migrate seed seed-base reset dev test phpstan deptrac pint lint ci test-all
 
 sail-up:
-	$(SAIL) up -d
+	"$(SAIL)" up -d
 
 sail-down:
-	$(SAIL) down
+	"$(SAIL)" down
 
 sail-restart:
-	$(SAIL) down
-	$(SAIL) up -d
+	"$(SAIL)" down
+	"$(SAIL)" up -d
 
 sail-logs:
-	$(SAIL) logs -f
+	"$(SAIL)" logs -f
 
-setup:
-	$(SAIL) composer install
-	$(SAIL) npm ci
-	$(SAIL) artisan key:generate
-	$(SAIL) artisan migrate --seed
-	$(SAIL) artisan storage:link
+setup: sail-up
+	"$(SAIL)" composer install
+	"$(SAIL)" npm ci
+	"$(SAIL)" artisan key:generate
+	"$(SAIL)" artisan migrate --seed
+	"$(SAIL)" artisan storage:link
 
-migrate:
-	$(SAIL) artisan migrate
+migrate: sail-up
+	"$(SAIL)" artisan migrate
 
-seed:
-	$(SAIL) artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS)
+seed: sail-up
+	"$(SAIL)" artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS)
 
-seed-base:
-	$(SAIL) artisan db:seed
+seed-base: sail-up
+	"$(SAIL)" artisan db:seed
 
-dev:
-	$(SAIL) php artisan serve & \
-	$(SAIL) php artisan queue:work
+reset: sail-up
+	"$(SAIL)" artisan migrate:fresh --seed
 
-test:
-	$(SAIL) artisan migrate
-	$(SAIL) php artisan test
+dev: sail-up
+	"$(SAIL)" php artisan serve & \
+	"$(SAIL)" php artisan queue:work
 
-phpstan:
-	$(SAIL) ./vendor/bin/phpstan analyse
+test: sail-up
+	"$(SAIL)" artisan migrate
+	"$(SAIL)" php artisan test
 
-deptrac:
-	$(SAIL) ./vendor/bin/deptrac analyse --config-file=deptrac.yaml
+phpstan: sail-up
+	"$(SAIL)" ./vendor/bin/phpstan analyse
 
-pint:
-	$(SAIL) ./vendor/bin/pint
+deptrac: sail-up
+	"$(SAIL)" ./vendor/bin/deptrac analyse --config-file=deptrac.yaml
 
-lint:
-	$(SAIL) ./vendor/bin/pint --test
+pint: sail-up
+	"$(SAIL)" ./vendor/bin/pint
 
-ci: lint phpstan deptrac test
+lint: sail-up
+	"$(SAIL)" ./vendor/bin/pint --test
+
+ci: sail-up lint phpstan deptrac test
 
 test-all: ci

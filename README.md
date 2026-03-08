@@ -158,6 +158,7 @@ Tests et qualité
 ### Seeders
 - `OfferSeeder` crée un jeu de données cohérent (offres + produits, états variés) avec images réelles issues d'une API libre.
 - Commande `demo:seed --offers=10 --products=5` pour injecter un volume de données à la volée.
+- Sans options, `demo:seed` passe en mode interactif.
 
 ### Tests ajoutés
 - Unit: `OfferServiceTest`, `ProductServiceTest`.
@@ -168,17 +169,23 @@ Tests et qualité
 - Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
 - Laravel Pint déjà présent: `vendor/bin/pint`.
 
-### Scripts Sail (Makefile / Python / Rust)
-- Makefile: `make -f tools/Makefile sail-up`, `make -f tools/Makefile setup`, `make -f tools/Makefile lint`, `make -f tools/Makefile phpstan`, `make -f tools/Makefile deptrac`, `make -f tools/Makefile test`, `make -f tools/Makefile test-all`, `make -f tools/Makefile ci`.
-- Makefile seed: `make -f tools/Makefile seed OFFERS=10 PRODUCTS=5` (ou `make -f tools/Makefile seed-base` pour `db:seed`).
-- Makefile dev: `make -f tools/Makefile dev` (serveur + queue).
-- Python: `python3 tools/sail.py up|setup|lint|phpstan|deptrac|test|test-all|ci`.
-- Python seed: `python3 tools/sail.py seed --offers 10 --products 5` (ou `python3 tools/sail.py seed-base`).
-- Python dev: `python3 tools/sail.py dev`.
-- Rust: `rustc tools/sail.rs -o tools/sail && tools/sail up|setup|lint|phpstan|deptrac|test|test-all|ci`.
-- Rust seed: `tools/sail seed --offers 10 --products 5` (ou `tools/sail seed-base`).
-- Rust dev: `tools/sail dev`.
-- Local: `tools/dev.sh` (serveur + queue) et `tools/test-all.sh` (lint + analyse statique + tests).
+### Commandes de base
+
+Sail:
+- `make setup`
+- `make reset`
+- `make dev`
+- `make lint`
+- `make test-all` (ou `make ci`)
+- `make seed OFFERS=10 PRODUCTS=5` (ou `make seed-base`)
+
+Local (sans Docker):
+- `sh tools/dev.sh --setup`
+- `sh tools/dev.sh --reset`
+- `sh tools/dev.sh`
+- `sh tools/test-all.sh`
+
+Plus d'options dans `tools/README.md`.
 
 ### CI
 - GitHub Actions: lint (Pint) + PHPStan + Deptrac + tests.
@@ -191,5 +198,5 @@ Tests et qualité
 
 ### Avec plus de temps
 - Rôles/permissions plus fines (owner, équipes, multi-tenancy).
-- Audit UI + exports (CSV) et retention policy.
-- Cache distribue avec tags + warmup.
+- Audit UI + exports (CSV) et politique de rétention.
+- Cache distribué avec tags + warmup.

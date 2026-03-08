@@ -38,7 +38,7 @@
                                 />
                             </div>
                             <div class="pt-4">
-                                <x-secondary-button>Filtrer</x-secondary-button>
+                                <x-secondary-button type="submit">Filtrer</x-secondary-button>
                             </div>
                         </div>
                         <input type="hidden" name="state" value="{{ request('state') }}">

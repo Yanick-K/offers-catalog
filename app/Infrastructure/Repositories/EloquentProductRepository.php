@@ -8,22 +8,24 @@ use App\Domain\Products\Repositories\ProductRepository;
 use App\Domain\Products\ValueObjects\ProductId;
 use App\Domain\Shared\ValueObjects\PageRequest;
 use App\Domain\Shared\ValueObjects\PaginatedResult;
+use App\Infrastructure\Repositories\Mappers\ProductMapper;
 use App\Models\Product as ProductModel;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentProductRepository implements ProductRepository
 {
+    public function __construct(private readonly ProductMapper $mapper) {}
+
     public function save(Product $product): Product
     {
         if ($product->id) {
             $model = ProductModel::query()->findOrFail($product->id->value);
-            $model->fill($this->toPersistence($product));
+            $model->fill($this->mapper->toPersistence($product));
             $model->save();
         } else {
-            $model = ProductModel::query()->create($this->toPersistence($product));
+            $model = ProductModel::query()->create($this->mapper->toPersistence($product));
         }
 
-        return $this->toDomain($model);
+        return $this->mapper->toDomain($model);
     }
 
     public function delete(ProductId $id): void
@@ -38,7 +40,7 @@ class EloquentProductRepository implements ProductRepository
     {
         $model = ProductModel::query()->find($id->value);
 
-        return $model ? $this->toDomain($model) : null;
+        return $model ? $this->mapper->toDomain($model) : null;
     }
 
     public function findForOffer(OfferId $offerId, ProductId $productId): ?Product
@@ -48,7 +50,7 @@ class EloquentProductRepository implements ProductRepository
             ->whereKey($productId->value)
             ->first();
 
-        return $model ? $this->toDomain($model) : null;
+        return $model ? $this->mapper->toDomain($model) : null;
     }
 
     public function paginateForOffer(OfferId $offerId, PageRequest $page): PaginatedResult
@@ -58,53 +60,6 @@ class EloquentProductRepository implements ProductRepository
             ->latest()
             ->paginate($page->perPage, ['*'], 'page', $page->page);
 
-        return $this->toPaginatedResult($paginator);
-    }
-
-    /**
-     * @param  LengthAwarePaginator<ProductModel>  $paginator
-     */
-    private function toPaginatedResult(LengthAwarePaginator $paginator): PaginatedResult
-    {
-        $items = array_map(
-            fn (ProductModel $model) => $this->toDomain($model),
-            $paginator->items()
-        );
-
-        return new PaginatedResult(
-            items: $items,
-            total: $paginator->total(),
-            page: $paginator->currentPage(),
-            perPage: $paginator->perPage(),
-            lastPage: $paginator->lastPage(),
-        );
-    }
-
-    private function toDomain(ProductModel $model): Product
-    {
-        return new Product(
-            id: new ProductId($model->id),
-            offerId: new OfferId($model->offer_id),
-            name: $model->name,
-            sku: $model->sku,
-            price: (string) $model->price,
-            state: $model->state,
-            image: $model->image,
-        );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function toPersistence(Product $product): array
-    {
-        return [
-            'offer_id' => $product->offerId->value,
-            'name' => $product->name,
-            'sku' => $product->sku,
-            'price' => $product->price,
-            'state' => $product->state->value,
-            'image' => $product->image,
-        ];
+        return $this->mapper->toPaginatedResult($paginator);
     }
 }

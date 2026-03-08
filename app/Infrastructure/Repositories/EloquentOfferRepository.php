@@ -6,14 +6,11 @@ use App\Domain\Offers\Entities\Offer;
 use App\Domain\Offers\OfferFilters;
 use App\Domain\Offers\Repositories\OfferRepository;
 use App\Domain\Offers\ValueObjects\OfferId;
-use App\Domain\Products\Entities\Product;
-use App\Domain\Products\ValueObjects\ProductId;
 use App\Domain\Shared\ValueObjects\PageRequest;
 use App\Domain\Shared\ValueObjects\PaginatedResult;
 use App\Infrastructure\Cache\PublicOfferCache;
+use App\Infrastructure\Repositories\Mappers\OfferMapper;
 use App\Models\Offer as OfferModel;
-use App\Models\Product as ProductModel;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentOfferRepository implements OfferRepository
 {
@@ -23,17 +20,19 @@ class EloquentOfferRepository implements OfferRepository
 
     private const SORTABLE = ['name', 'slug', 'state', 'created_at'];
 
+    public function __construct(private readonly OfferMapper $mapper) {}
+
     public function save(Offer $offer): Offer
     {
         if ($offer->id) {
             $model = OfferModel::query()->findOrFail($offer->id->value);
-            $model->fill($this->toPersistence($offer));
+            $model->fill($this->mapper->toPersistence($offer));
             $model->save();
         } else {
-            $model = OfferModel::query()->create($this->toPersistence($offer));
+            $model = OfferModel::query()->create($this->mapper->toPersistence($offer));
         }
 
-        return $this->toDomain($model);
+        return $this->mapper->toDomain($model);
     }
 
     public function delete(OfferId $id): void
@@ -48,14 +47,14 @@ class EloquentOfferRepository implements OfferRepository
     {
         $model = OfferModel::query()->find($id->value);
 
-        return $model ? $this->toDomain($model) : null;
+        return $model ? $this->mapper->toDomain($model) : null;
     }
 
     public function findWithProducts(OfferId $id): ?Offer
     {
         $model = OfferModel::query()->with('products')->find($id->value);
 
-        return $model ? $this->toDomain($model, true) : null;
+        return $model ? $this->mapper->toDomain($model, true) : null;
     }
 
     public function paginate(OfferFilters $filters, PageRequest $page): PaginatedResult
@@ -88,7 +87,7 @@ class EloquentOfferRepository implements OfferRepository
 
         $paginator = $query->paginate($page->perPage, ['*'], 'page', $page->page);
 
-        return $this->toPaginatedResult($paginator);
+        return $this->mapper->toPaginatedResult($paginator);
     }
 
     public function paginatePublished(PageRequest $page): PaginatedResult
@@ -104,75 +103,7 @@ class EloquentOfferRepository implements OfferRepository
                 ->orderByDesc('id')
                 ->paginate($page->perPage, ['*'], 'page', $page->page);
 
-            return $this->toPaginatedResult($paginator, true);
+            return $this->mapper->toPaginatedResult($paginator, true);
         });
-    }
-
-    /**
-     * @param  LengthAwarePaginator<OfferModel>  $paginator
-     */
-    private function toPaginatedResult(LengthAwarePaginator $paginator, bool $withProducts = false): PaginatedResult
-    {
-        $items = array_map(
-            fn (OfferModel $model) => $this->toDomain($model, $withProducts),
-            $paginator->items()
-        );
-
-        return new PaginatedResult(
-            items: $items,
-            total: $paginator->total(),
-            page: $paginator->currentPage(),
-            perPage: $paginator->perPage(),
-            lastPage: $paginator->lastPage(),
-        );
-    }
-
-    private function toDomain(OfferModel $model, bool $withProducts = false): Offer
-    {
-        $offer = new Offer(
-            id: new OfferId($model->id),
-            name: $model->name,
-            slug: $model->slug,
-            description: $model->description,
-            state: $model->state,
-            image: $model->image,
-        );
-
-        if (! $withProducts) {
-            return $offer;
-        }
-
-        $products = $model->products->map(
-            fn (ProductModel $product) => $this->toDomainProduct($product)
-        )->all();
-
-        return $offer->withProducts($products);
-    }
-
-    private function toDomainProduct(ProductModel $model): Product
-    {
-        return new Product(
-            id: new ProductId($model->id),
-            offerId: new OfferId($model->offer_id),
-            name: $model->name,
-            sku: $model->sku,
-            price: (string) $model->price,
-            state: $model->state,
-            image: $model->image,
-        );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function toPersistence(Offer $offer): array
-    {
-        return [
-            'name' => $offer->name,
-            'slug' => $offer->slug,
-            'description' => $offer->description,
-            'state' => $offer->state->value,
-            'image' => $offer->image,
-        ];
     }
 }
