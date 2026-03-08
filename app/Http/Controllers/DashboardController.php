@@ -8,14 +8,14 @@ use App\Application\Offers\Queries\OfferFilters;
 use App\Application\Offers\Queries\OfferQuery;
 use App\Domain\Shared\ValueObjects\PageRequest;
 use App\Http\Controllers\Concerns\PaginatesDomainResults;
-use App\Http\Requests\Offer\OfferIndexRequest;
+use App\Http\Requests\Offer\IndexOfferRequest;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     use PaginatesDomainResults;
 
-    public function show(OfferIndexRequest $request, OfferQuery $query): View
+    public function show(IndexOfferRequest $request, OfferQuery $query): View
     {
         $this->authorize('admin');
 

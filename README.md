@@ -128,12 +128,13 @@ Tests et qualité
 ### Validations et robustesse
 - FormRequests dédiés (create/update/index) avec règles explicites.
 - Service d'upload image isolé (`ImageUploader`) et suppression des anciens fichiers via observers.
-- Pagination ajoutée sur le back-office et l'API; tri côté back via `sort`/`direction`.
+- Pagination ajoutée sur le back-office et l'API; filtres par nom/slug/état.
 - Prix gérés via `Money` (centimes) dans le domaine, convertis pour la persistance et l'affichage.
 
 ### Droits et sécurité
 - Gate `admin` basé sur `users.is_admin` pour restreindre le back-office.
 - Compte démo admin: `test@example.com` / `password`.
+- Seul un compte admin a le droit d'accéder au dashboard.
 
 ### Observers et audits
 - `OfferObserver` et `ProductObserver` pour la gestion des fichiers et l'invalidation du cache.
@@ -166,8 +167,8 @@ Tests et qualité
 ### Outillage
 - Larastan / PHPStan niveau 8 (`phpstan.neon`).
 - Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
-- Laravel Pint déjà présent: `vendor/bin/pint`.
-- Dépendances PHP mises à jour pour corriger des vulnérabilités (composer audit OK).
+- Laravel Pint: `vendor/bin/pint`.
+- Dépendances PHP mises à jour pour corriger des vulnérabilités.
 
 ### Commandes de base (local)
 - `make setup`
@@ -188,7 +189,10 @@ Plus d'options dans `tools/README.md`.
 - Environ 7-8 heures.
 
 ### Avec plus de temps
-- Rôles/permissions plus fines (owner, équipes, multi-tenancy).
-- Audit UI + exports (CSV) et politique de rétention.
-- Cache distribué avec tags + warmup.
+- Rôles/permissions plus avancés
+- Amélioration du cache.
 - Docker/Sail pour des environnements homogènes.
+- Séparation des responsabilités dans les observers
+- Indexation plus poussée, et recherche de performance SQL plus poussée
+- Mise en place d'un système de queue
+- Meilleur UX/UI

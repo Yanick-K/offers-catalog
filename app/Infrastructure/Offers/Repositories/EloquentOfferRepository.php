@@ -13,16 +13,9 @@ use App\Domain\Shared\ValueObjects\PaginatedResult;
 use App\Infrastructure\Offers\Cache\PublicOfferCache;
 use App\Infrastructure\Offers\Repositories\Mappers\OfferMapper;
 use App\Models\Offer as OfferModel;
-use App\Shared\Query\SortDirection;
 
 class EloquentOfferRepository implements OfferRepository
 {
-    private const DEFAULT_SORT = 'created_at';
-
-    private const DEFAULT_DIRECTION = 'desc';
-
-    private const SORTABLE = ['name', 'slug', 'state', 'created_at'];
-
     public function __construct(private readonly OfferMapper $mapper) {}
 
     public function save(Offer $offer): Offer
@@ -55,7 +48,7 @@ class EloquentOfferRepository implements OfferRepository
 
     public function paginate(OfferFilterCriteria $filters, PageRequest $page): PaginatedResult
     {
-        $query = OfferModel::query()->withCount('products')->with('products');
+        $query = OfferModel::query();
 
         if ($filters->state()) {
             $query->where('state', $filters->state()->value);
@@ -69,18 +62,7 @@ class EloquentOfferRepository implements OfferRepository
             $query->where('slug', 'like', '%' . $filters->slug() . '%');
         }
 
-        $sort = $filters->sort() ?? self::DEFAULT_SORT;
-        if (! in_array($sort, self::SORTABLE, true)) {
-            $sort = self::DEFAULT_SORT;
-        }
-
-        $direction = $filters->direction() ?? SortDirection::DESC;
-        $directionValue = $direction->value;
-        if (! in_array($directionValue, [self::DEFAULT_DIRECTION, SortDirection::ASC->value], true)) {
-            $directionValue = self::DEFAULT_DIRECTION;
-        }
-
-        $query->orderBy($sort, $directionValue);
+        $query->orderByDesc('created_at');
 
         $paginator = $query->paginate($page->perPage, ['*'], 'page', $page->page);
 

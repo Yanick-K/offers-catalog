@@ -17,8 +17,6 @@ class OfferMapper
 
     public function toDomain(OfferModel $model): Offer
     {
-        $model->loadMissing('products');
-
         $offer = new Offer(
             id: new OfferId($model->id),
             name: $model->name,
@@ -28,9 +26,12 @@ class OfferMapper
             image: $model->image,
         );
 
-        $products = $model->products->map(
-            fn ($product) => $this->productMapper->toDomain($product)
-        )->all();
+        $products = [];
+        if ($model->relationLoaded('products')) {
+            $products = $model->getRelation('products')->map(
+                fn ($product) => $this->productMapper->toDomain($product)
+            )->all();
+        }
 
         return $offer->withProducts($products);
     }
@@ -54,10 +55,9 @@ class OfferMapper
      */
     public function toPaginatedResult(LengthAwarePaginator $paginator): PaginatedResult
     {
-        $items = array_map(
-            fn (OfferModel $model) => $this->toDomain($model),
-            $paginator->items()
-        );
+        $items = $paginator->getCollection()->map(
+            fn (OfferModel $model) => $this->toDomain($model)
+        )->all();
 
         return new PaginatedResult(
             items: $items,

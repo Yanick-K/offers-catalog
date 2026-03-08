@@ -79,7 +79,7 @@ Options:
   --setup   Run local setup steps before starting
   --reset   Reset the database (migrate:fresh --seed) before starting
   --detach  Start and exit without streaming logs
-  --stop    Stop any running server/queue worker
+  --stop    Stop the running server
   -h, --help  Show this help message
 EOF
 }
@@ -89,10 +89,8 @@ PID_DIR="$ROOT_DIR/storage/app/dev"
 LOG_DIR="$ROOT_DIR/storage/logs"
 
 SERVER_PID_FILE="$PID_DIR/server.pid"
-QUEUE_PID_FILE="$PID_DIR/queue.pid"
 
 SERVER_LOG="$LOG_DIR/dev-server.log"
-QUEUE_LOG="$LOG_DIR/dev-queue.log"
 
 mkdir -p "$PID_DIR" "$LOG_DIR"
 cd "$ROOT_DIR"
@@ -206,20 +204,13 @@ cleanup() {
     terminate_process "$SERVER_PID"
     wait "$SERVER_PID" 2>/dev/null || true
   fi
-
-  if [ -n "${QUEUE_PID:-}" ]; then
-    terminate_process "$QUEUE_PID"
-    wait "$QUEUE_PID" 2>/dev/null || true
-  fi
-
-  rm -f "$SERVER_PID_FILE" "$QUEUE_PID_FILE"
+  rm -f "$SERVER_PID_FILE"
 
   exit "$exit_code"
 }
 
 if $STOP; then
   stop_if_exists "$SERVER_PID_FILE" "server"
-  stop_if_exists "$QUEUE_PID_FILE" "queue worker"
   exit 0
 fi
 
@@ -229,13 +220,7 @@ if [ -n "${existing_server_pid:-}" ] && is_running "$existing_server_pid"; then
   exit 1
 fi
 
-existing_queue_pid=$(read_pid "$QUEUE_PID_FILE" || true)
-if [ -n "${existing_queue_pid:-}" ] && is_running "$existing_queue_pid"; then
-  printf 'Queue worker already running with PID %s\n' "$existing_queue_pid" >&2
-  exit 1
-fi
-
-rm -f "$SERVER_PID_FILE" "$QUEUE_PID_FILE"
+rm -f "$SERVER_PID_FILE"
 
 if $DO_SETUP; then
   if [ ! -f .env ] && [ -f .env.example ]; then
@@ -269,22 +254,7 @@ start_server() {
   print_log_snapshot server "$SERVER_LOG"
 }
 
-start_queue() {
-  : > "$QUEUE_LOG"
-  php artisan queue:work >> "$QUEUE_LOG" 2>&1 &
-  QUEUE_PID=$!
-  printf '%s\n' "$QUEUE_PID" > "$QUEUE_PID_FILE"
-  sleep 1
-  if ! is_running "$QUEUE_PID"; then
-    printf 'Queue worker failed to start. Check %s\n' "$QUEUE_LOG" >&2
-    return 1
-  fi
-
-  print_log_snapshot queue "$QUEUE_LOG"
-}
-
 run_step "server" start_server
-run_step "queue:work" start_queue
 
 if $DETACH; then
   exit 0
@@ -292,18 +262,14 @@ fi
 
 trap cleanup EXIT INT TERM
 
-(tail -n 0 -F "$SERVER_LOG" "$QUEUE_LOG" 2>/dev/null | awk '
-  BEGIN { current = "" }
-  /^==> .*dev-server\.log <==$/ { current = "server"; next }
-  /^==> .*dev-queue\.log <==$/  { current = "queue"; next }
+(tail -n 0 -F "$SERVER_LOG" 2>/dev/null | awk '
+  BEGIN { current = "server" }
   {
     if ($0 ~ /^[[:space:]]*$/) next;
     key = current != "" ? current : "default";
     if ($0 == prev[key]) next;
     prev[key] = $0;
     if (current == "server") print "[server] " $0;
-    else if (current == "queue") print "[queue ] " $0;
-    else print $0;
     fflush();
   }
 ') &
@@ -312,10 +278,6 @@ TAIL_PID=$!
 while true; do
   if ! is_running "$SERVER_PID"; then
     printf '[dev] server stopped unexpectedly\n' >&2
-    exit 1
-  fi
-  if ! is_running "$QUEUE_PID"; then
-    printf '[dev] queue worker stopped unexpectedly\n' >&2
     exit 1
   fi
   sleep 1
