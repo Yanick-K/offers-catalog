@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Application\Offers\Queries\OfferQuery;
 use App\Application\Products\DTO\ProductData;
-use App\Application\Products\Services\ProductService;
-use App\Domain\Offers\Queries\OfferQuery;
-use App\Domain\Products\Queries\ProductQuery;
+use App\Application\Products\Queries\ProductQuery;
+use App\Application\Products\Services\ProductCommandService;
 use App\Domain\Shared\ValueObjects\PageRequest;
+use App\Http\Controllers\Concerns\BuildsImageUploads;
 use App\Http\Controllers\Concerns\PaginatesDomainResults;
 use App\Http\Controllers\Concerns\ResolvesDomainIds;
 use App\Http\Requests\Product\StoreProductRequest;
@@ -19,6 +20,7 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    use BuildsImageUploads;
     use PaginatesDomainResults;
     use ResolvesDomainIds;
 
@@ -26,7 +28,7 @@ class ProductController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $offerQuery->get($this->offerIdFromRoute($offerId));
+        $offer = $offerQuery->find($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }
@@ -43,7 +45,7 @@ class ProductController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $offerQuery->get($this->offerIdFromRoute($offerId));
+        $offer = $offerQuery->find($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }
@@ -51,13 +53,13 @@ class ProductController extends Controller
         return view('products.create', compact('offer'));
     }
 
-    public function store(StoreProductRequest $request, string $offerId, ProductService $service): RedirectResponse
+    public function store(StoreProductRequest $request, string $offerId, ProductCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 
         /** @var array{name: string, sku: string, price: float|int|string, state: string} $validated */
         $validated = $request->validated();
-        $data = ProductData::fromArray($validated, $request->file('image'));
+        $data = ProductData::fromArray($validated, $this->toImageUpload($request->file('image')));
         $service->create($this->offerIdFromRoute($offerId), $data);
 
         return redirect()
@@ -69,7 +71,7 @@ class ProductController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $offerQuery->get($this->offerIdFromRoute($offerId));
+        $offer = $offerQuery->find($this->offerIdFromRoute($offerId));
         $product = $productQuery->getForOffer(
             $this->offerIdFromRoute($offerId),
             $this->productIdFromRoute($productId)
@@ -81,13 +83,13 @@ class ProductController extends Controller
         return view('products.edit', compact('offer', 'product'));
     }
 
-    public function update(UpdateProductRequest $request, string $offerId, string $productId, ProductService $service): RedirectResponse
+    public function update(UpdateProductRequest $request, string $offerId, string $productId, ProductCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 
         /** @var array{name: string, sku: string, price: float|int|string, state: string} $validated */
         $validated = $request->validated();
-        $data = ProductData::fromArray($validated, $request->file('image'));
+        $data = ProductData::fromArray($validated, $this->toImageUpload($request->file('image')));
         $updated = $service->update(
             $this->offerIdFromRoute($offerId),
             $this->productIdFromRoute($productId),
@@ -102,7 +104,7 @@ class ProductController extends Controller
             ->with('status', 'Product updated successfully.');
     }
 
-    public function destroy(string $offerId, string $productId, ProductService $service): RedirectResponse
+    public function destroy(string $offerId, string $productId, ProductCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 

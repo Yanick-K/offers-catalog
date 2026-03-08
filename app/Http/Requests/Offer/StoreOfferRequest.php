@@ -25,7 +25,7 @@ class StoreOfferRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', Rule::unique('offers', 'slug')],
             'image' => ['required', 'image', 'max:2048'],
             'description' => ['nullable', 'string', 'max:255'],
-            'state' => ['required', Rule::in(OfferState::values())],
+            'state' => ['required', Rule::enum(OfferState::class)],
         ];
     }
 }

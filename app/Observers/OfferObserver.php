@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Infrastructure\Cache\PublicOfferCache;
+use App\Domain\Shared\Contracts\ImageUploader;
+use App\Infrastructure\Offers\Cache\PublicOfferCache;
 use App\Models\AuditLog;
 use App\Models\Offer;
-use App\Shared\Files\ImageUploader;
 
 class OfferObserver
 {

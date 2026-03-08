@@ -27,7 +27,7 @@ class UpdateOfferRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', Rule::unique('offers', 'slug')->ignore($offerId)],
             'image' => ['nullable', 'image', 'max:2048'],
             'description' => ['nullable', 'string', 'max:255'],
-            'state' => ['required', Rule::in(OfferState::values())],
+            'state' => ['required', Rule::enum(OfferState::class)],
         ];
     }
 }

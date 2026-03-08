@@ -120,10 +120,10 @@ Tests et qualité
 ### Architecture et séparation
 - DDD light Domain/Application/Infrastructure avec deptrac pour verrouiller les dépendances.
 - Choix assumé pour isoler le domaine des détails Eloquent et garder des frontières testables, tout en restant léger vu la simplicité métier.
-- Domain: Entities, ValueObjects, Queries et interfaces de repository (`App\Domain\...`).
-- Application: DTOs + services d'usage (`App\Application\Offers\Services\OfferService`, `App\Application\Products\Services\ProductService`).
-- Infrastructure: repositories Eloquent + cache (`EloquentOfferRepository`, `PublicOfferCache`) + `StorageImageUploader`.
-- Shared: port `ImageUploader` pour découpler l'upload d'images.
+- Domain: Entities, ValueObjects et interfaces de repository (`App\Domain\...`).
+- Application: DTOs + services de commande (`OfferCommandService`, `ProductCommandService`) + queries de lecture (`OfferQuery`, `ProductQuery`).
+- Infrastructure organisée par contexte: `Offers` (repositories + cache), `Products` (repositories), `Shared` (files/seed).
+- Domain/Shared: port `ImageUploader` (contract) pour découpler l'upload d'images.
 
 ### Validations et robustesse
 - FormRequests dédiés (create/update/index) avec règles explicites.
@@ -138,7 +138,10 @@ Tests et qualité
 ### Observers et audits
 - `OfferObserver` et `ProductObserver` pour la gestion des fichiers et l'invalidation du cache.
 - Table `audit_logs` pour tracer create/update/delete (user + changements).
-- Les anciens fichiers d'image sont supprimés par les observers (tests: `ImageCleanupTest`, `OfferServiceTest`, `ProductServiceTest`).
+- Les anciens fichiers d'image sont supprimés par les observers (tests: `ImageCleanupTest`, `OfferCommandServiceTest`, `ProductCommandServiceTest`).
+
+### Remarque vocabulaire
+- Asymétrie relevée entre `OfferState::Hidden` et `ProductState::Invisible`. Sans clarification métier, cela ressemble à une incohérence de langage du domaine; en contexte réel, il faudrait valider que cette différence est bien intentionnelle.
 
 ### Performance
 - Index sur `offers.state` et `products.state`.
@@ -157,7 +160,7 @@ Tests et qualité
 - Sans options, `demo:seed` passe en mode interactif.
 
 ### Tests ajoutés
-- Unit: `OfferServiceTest`, `ProductServiceTest`.
+- Unit: `OfferCommandServiceTest`, `ProductCommandServiceTest`.
 - Feature: `OfferManagementTest`, `Api/OfferIndexTest`.
 
 ### Outillage

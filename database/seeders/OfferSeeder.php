@@ -6,7 +6,7 @@ namespace Database\Seeders;
 
 use App\Domain\Offers\ValueObjects\OfferState;
 use App\Domain\Products\ValueObjects\ProductState;
-use App\Infrastructure\Files\LocalImageStore;
+use App\Infrastructure\Shared\Files\LocalImageStorage;
 use App\Models\Offer;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 class OfferSeeder extends Seeder
 {
-    public function __construct(private readonly LocalImageStore $images) {}
+    public function __construct(private readonly LocalImageStorage $images) {}
 
     public function run(): void
     {

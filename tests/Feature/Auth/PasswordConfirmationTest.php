@@ -6,9 +6,9 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Tests\Feature\WebTestCase;
 
-class PasswordConfirmationTest extends TestCase
+class PasswordConfirmationTest extends WebTestCase
 {
     use RefreshDatabase;
 

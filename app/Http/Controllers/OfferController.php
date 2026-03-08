@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Application\Offers\DTO\OfferData;
-use App\Application\Offers\Services\OfferService;
-use App\Domain\Offers\Queries\OfferQuery;
+use App\Application\Offers\Queries\OfferQuery;
+use App\Application\Offers\Services\OfferCommandService;
+use App\Http\Controllers\Concerns\BuildsImageUploads;
 use App\Http\Controllers\Concerns\ResolvesDomainIds;
 use App\Http\Requests\Offer\StoreOfferRequest;
 use App\Http\Requests\Offer\UpdateOfferRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class OfferController extends Controller
 {
+    use BuildsImageUploads;
     use ResolvesDomainIds;
 
     public function create(): View
@@ -24,13 +26,13 @@ class OfferController extends Controller
         return view('offers.create');
     }
 
-    public function store(StoreOfferRequest $request, OfferService $service): RedirectResponse
+    public function store(StoreOfferRequest $request, OfferCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 
         /** @var array{name: string, slug: string, description?: string|null, state: string} $validated */
         $validated = $request->validated();
-        $data = OfferData::fromArray($validated, $request->file('image'));
+        $data = OfferData::fromArray($validated, $this->toImageUpload($request->file('image')));
         $service->create($data);
 
         return redirect()->route('dashboard');
@@ -40,7 +42,7 @@ class OfferController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $query->getWithProducts($this->offerIdFromRoute($offerId));
+        $offer = $query->find($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }
@@ -48,13 +50,13 @@ class OfferController extends Controller
         return view('offers.edit', compact('offer'));
     }
 
-    public function update(UpdateOfferRequest $request, string $offerId, OfferService $service): RedirectResponse
+    public function update(UpdateOfferRequest $request, string $offerId, OfferCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 
         /** @var array{name: string, slug: string, description?: string|null, state: string} $validated */
         $validated = $request->validated();
-        $data = OfferData::fromArray($validated, $request->file('image'));
+        $data = OfferData::fromArray($validated, $this->toImageUpload($request->file('image')));
         $updated = $service->update($this->offerIdFromRoute($offerId), $data);
         if (! $updated) {
             abort(404);
@@ -63,7 +65,7 @@ class OfferController extends Controller
         return redirect()->route('dashboard');
     }
 
-    public function destroy(string $offerId, OfferService $service): RedirectResponse
+    public function destroy(string $offerId, OfferCommandService $service): RedirectResponse
     {
         $this->authorize('admin');
 
@@ -76,7 +78,7 @@ class OfferController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $query->getWithProducts($this->offerIdFromRoute($offerId));
+        $offer = $query->find($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }

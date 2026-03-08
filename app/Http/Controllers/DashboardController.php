@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Offers\OfferFilters;
-use App\Domain\Offers\Queries\OfferQuery;
+use App\Application\Offers\Queries\OfferFilters;
+use App\Application\Offers\Queries\OfferQuery;
 use App\Domain\Shared\ValueObjects\PageRequest;
 use App\Http\Controllers\Concerns\PaginatesDomainResults;
 use App\Http\Requests\Offer\OfferIndexRequest;

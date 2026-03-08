@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Offers\DTO;
 
 use App\Domain\Offers\ValueObjects\OfferState;
-use Illuminate\Http\UploadedFile;
+use App\Domain\Shared\Contracts\ImageUpload;
 
 final readonly class OfferData
 {
@@ -14,13 +14,13 @@ final readonly class OfferData
         public string $slug,
         public ?string $description,
         public OfferState $state,
-        public ?UploadedFile $image,
+        public ?ImageUpload $image,
     ) {}
 
     /**
      * @param array{name: string, slug: string, description?: string|null, state: string} $data
      */
-    public static function fromArray(array $data, ?UploadedFile $image): self
+    public static function fromArray(array $data, ?ImageUpload $image): self
     {
         return new self(
             name: $data['name'],

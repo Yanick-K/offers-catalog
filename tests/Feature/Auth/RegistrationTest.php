@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Tests\Feature\WebTestCase;
 
-class RegistrationTest extends TestCase
+class RegistrationTest extends WebTestCase
 {
     use RefreshDatabase;
 

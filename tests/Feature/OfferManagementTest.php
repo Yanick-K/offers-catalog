@@ -10,9 +10,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
 
-class OfferManagementTest extends TestCase
+class OfferManagementTest extends WebTestCase
 {
     use RefreshDatabase;
 

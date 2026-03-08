@@ -27,7 +27,7 @@ class UpdateProductRequest extends FormRequest
             'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($productId)],
             'image' => ['nullable', 'image', 'max:2048'],
             'price' => ['required', 'numeric', 'min:0'],
-            'state' => ['required', Rule::in(ProductState::values())],
+            'state' => ['required', Rule::enum(ProductState::class)],
         ];
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Domain\Offers\Queries\OfferQuery;
+use App\Application\Offers\Queries\OfferQuery;
 use App\Domain\Shared\ValueObjects\PageRequest;
 use App\Http\Controllers\Concerns\PaginatesDomainResults;
 use App\Http\Controllers\Controller;

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Infrastructure\Seed\DemoSeedHandler;
+use App\Infrastructure\Shared\Seed\DemoSeedHandler;
 use Illuminate\Console\Command;
-
-use function Laravel\Prompts\error;
-use function Laravel\Prompts\info;
-use function Laravel\Prompts\text;
+use Laravel\Prompts\Note;
+use Laravel\Prompts\TextPrompt;
 
 class DemoSeedCommand extends Command
 {
@@ -23,7 +21,7 @@ class DemoSeedCommand extends Command
         $productsOption = $this->option('products');
 
         if ($offersOption === null) {
-            $offersOption = text(
+            $offersOption = (new TextPrompt(
                 label: 'How many offers to create?',
                 default: '3',
                 required: true,
@@ -38,11 +36,11 @@ class DemoSeedCommand extends Command
 
                     return null;
                 }
-            );
+            ))->prompt();
         }
 
         if ($productsOption === null) {
-            $productsOption = text(
+            $productsOption = (new TextPrompt(
                 label: 'How many products per offer?',
                 default: '3',
                 required: true,
@@ -57,20 +55,20 @@ class DemoSeedCommand extends Command
 
                     return null;
                 }
-            );
+            ))->prompt();
         }
 
         $offers = (int) $offersOption;
         $products = (int) $productsOption;
 
         if ($offers < 1) {
-            error('Offers must be >= 1.');
+            (new Note('Offers must be >= 1.', 'error'))->display();
 
             return self::FAILURE;
         }
 
         if ($products < 0) {
-            error('Products must be >= 0.');
+            (new Note('Products must be >= 0.', 'error'))->display();
 
             return self::FAILURE;
         }
@@ -79,7 +77,7 @@ class DemoSeedCommand extends Command
 
         $handler->handle($offers, $products, $useRemote);
 
-        info(sprintf('Seeded %d offers and %d products per offer.', $offers, $products));
+        (new Note(sprintf('Seeded %d offers and %d products per offer.', $offers, $products), 'info'))->display();
 
         return self::SUCCESS;
     }
