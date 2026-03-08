@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: HelloCSE Offers API
+  version: "1.0.0"
+servers:
+  - url: /api/v1
+paths:
+  /offers:
+    get:
+      summary: List published offers and products
+      parameters:
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Paginated offers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferCollection"
+components:
+  schemas:
+    OfferCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Offer"
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              nullable: true
+            last:
+              type: string
+              nullable: true
+            prev:
+              type: string
+              nullable: true
+            next:
+              type: string
+              nullable: true
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            from:
+              type: integer
+              nullable: true
+            last_page:
+              type: integer
+            per_page:
+              type: integer
+            to:
+              type: integer
+              nullable: true
+            total:
+              type: integer
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        state:
+          type: string
+          enum: [draft, published, hidden]
+        image:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sku:
+          type: string
+        price:
+          type: string
+        state:
+          type: string
+          enum: [draft, published, invisible]
+        image:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true

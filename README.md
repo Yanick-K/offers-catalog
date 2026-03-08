@@ -97,6 +97,7 @@ Prérequis
    - php artisan key:generate
 4. Exécuter les migrations et seeders
    - php artisan migrate --seed
+   - Optionnel (jeu de données dynamique): php artisan demo:seed --offers=10 --products=5
 5. Lier le stockage public
    - php artisan storage:link
 6. Builder les assets (si UI utilisée)
@@ -109,10 +110,86 @@ Prérequis
 2. ./vendor/bin/sail up -d
 3. ./vendor/bin/sail artisan key:generate
 4. ./vendor/bin/sail artisan migrate --seed
+   - Optionnel (jeu de données dynamique): ./vendor/bin/sail artisan demo:seed --offers=10 --products=5
 5. ./vendor/bin/sail artisan storage:link
 6. ./vendor/bin/sail npm ci && ./vendor/bin/sail npm run build
+7. Scripts alternatifs dans `tools/` (Makefile, Python, Rust).
+   - Local: `tools/dev.sh` (serveur + queue) et `tools/test-all.sh` (lint + analyse statique + tests).
 
 Tests et qualité
-- Lancer les tests: phpunit ou php artisan test
-- Lancer PHPStan: vendor/bin/phpstan analyse --level=8 (ajustez le niveau si vous visez plus)
+- Migrations (si besoin): php artisan migrate
+- Lancer les tests: php artisan test
+- Lancer PHPStan: vendor/bin/phpstan analyse
+- Lancer Deptrac: vendor/bin/deptrac analyse --config-file=deptrac.yaml
+- Lancer Pint (lint): vendor/bin/pint --test
 
+## Notes techniques (ajouts)
+
+### Architecture et séparation
+- DDD light Domain/Application/Infrastructure avec deptrac pour verrouiller les dépendances.
+- Domain: Entities, ValueObjects, Queries et interfaces de repository (`App\Domain\...`).
+- Application: DTOs + services d'usage (`App\Application\Offers\Services\OfferService`, `App\Application\Products\Services\ProductService`).
+- Infrastructure: repositories Eloquent + cache (`EloquentOfferRepository`, `PublicOfferCache`) + `StorageImageUploader`.
+- Shared: port `ImageUploader` pour découpler l'upload d'images.
+
+### Validations et robustesse
+- FormRequests dédiés (create/update/index) avec règles explicites et messages plus lisibles via `attributes`.
+- Service d'upload image isolé (`ImageUploader`) et suppression des anciens fichiers via observers.
+- Pagination ajoutée sur le back-office et l'API; tri côté back via `sort`/`direction`.
+
+### Droits et sécurité
+- Policies Offer/Product basées sur `users.is_admin` pour restreindre le back-office.
+- Compte démo admin: `test@example.com` / `password`.
+
+### Observers et audits
+- `OfferObserver` et `ProductObserver` pour la gestion des fichiers et l'invalidation du cache.
+- Table `audit_logs` pour tracer create/update/delete (user + changements).
+
+### Performance
+- Index sur `offers.state` et `products.state`.
+- Cache versionné pour `GET /api/v1/offers`.
+
+### API
+- API Resources (`OfferResource`, `ProductResource`) pour stabiliser le contrat.
+- API versionnée: `GET /api/v1/offers` (et alias legacy `GET /api/offers`).
+- OpenAPI/Swagger: `/docs` (spec dans `public/docs/openapi.yaml`).
+- `GET /api/v1/offers` paginé, accepte `per_page` (1-100) et retourne uniquement les offres/produits publiés.
+
+### Seeders
+- `OfferSeeder` crée un jeu de données cohérent (offres + produits, états variés) avec images réelles issues d'une API libre.
+- Commande `demo:seed --offers=10 --products=5` pour injecter un volume de données à la volée.
+
+### Tests ajoutés
+- Unit: `OfferServiceTest`, `ProductServiceTest`.
+- Feature: `OfferManagementTest`, `Api/OfferIndexTest`.
+
+### Outillage
+- Larastan / PHPStan niveau 8 (`phpstan.neon`).
+- Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
+- Laravel Pint déjà présent: `vendor/bin/pint`.
+
+### Scripts Sail (Makefile / Python / Rust)
+- Makefile: `make -f tools/Makefile sail-up`, `make -f tools/Makefile setup`, `make -f tools/Makefile lint`, `make -f tools/Makefile phpstan`, `make -f tools/Makefile deptrac`, `make -f tools/Makefile test`, `make -f tools/Makefile test-all`, `make -f tools/Makefile ci`.
+- Makefile seed: `make -f tools/Makefile seed OFFERS=10 PRODUCTS=5` (ou `make -f tools/Makefile seed-base` pour `db:seed`).
+- Makefile dev: `make -f tools/Makefile dev` (serveur + queue).
+- Python: `python3 tools/sail.py up|setup|lint|phpstan|deptrac|test|test-all|ci`.
+- Python seed: `python3 tools/sail.py seed --offers 10 --products 5` (ou `python3 tools/sail.py seed-base`).
+- Python dev: `python3 tools/sail.py dev`.
+- Rust: `rustc tools/sail.rs -o tools/sail && tools/sail up|setup|lint|phpstan|deptrac|test|test-all|ci`.
+- Rust seed: `tools/sail seed --offers 10 --products 5` (ou `tools/sail seed-base`).
+- Rust dev: `tools/sail dev`.
+- Local: `tools/dev.sh` (serveur + queue) et `tools/test-all.sh` (lint + analyse statique + tests).
+
+### CI
+- GitHub Actions: lint (Pint) + PHPStan + Deptrac + tests.
+
+### Hooks git
+- Activer le hook pre-commit: `git config core.hooksPath .githooks` (puis `pint --test` ou `php-cs-fixer` sont lancés au commit).
+
+### Temps passé
+- Environ 4-5 heures.
+
+### Avec plus de temps
+- Rôles/permissions plus fines (owner, équipes, multi-tenancy).
+- Audit UI + exports (CSV) et retention policy.
+- Cache distribue avec tags + warmup.

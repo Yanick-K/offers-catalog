@@ -10,7 +10,9 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="mb-2 text-right">
-                        <x-primary-link href="{{ route('offers.create') }}">Ajouter</x-primary-link>
+                        @can('admin')
+                            <x-primary-link href="{{ route('offers.create') }}">Ajouter</x-primary-link>
+                        @endcan
                     </div>
                     <!-- Filter form -->
                     <form method="GET" action="{{ route('dashboard') }}" class="mb-4">
@@ -48,7 +50,7 @@
                                 Tous
                             </x-nav-link>
                         </div>
-                        @foreach(\App\Models\Offer::$states as $state => $label)
+                        @foreach(\App\Domain\Offers\ValueObjects\OfferState::labels() as $state => $label)
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <x-nav-link :href="route('dashboard', ['state' => $state])" :active="request('state') == $state">
                                     {{ $label }}
@@ -73,28 +75,36 @@
                                 @foreach($offers as $offer)
                                     <tr>
                                         <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                                            <a href="{{ route('offers.show', $offer) }}">{{ $offer->id }}</a>
+                                            <a href="{{ route('offers.show', $offer->id->value) }}">{{ $offer->id->value }}</a>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <img src="{{ asset('storage/'.$offer->image) }}" alt="Image of {{ $offer->name }}" class="h-12 w-12 object-cover rounded-md border border-gray-200 dark:border-gray-700">
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
-                                            <a href="{{ route('offers.show', $offer) }}">{{ $offer->name }}</a>
+                                            <a href="{{ route('offers.show', $offer->id->value) }}">{{ $offer->name }}</a>
                                         </td>
                                         <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{{ $offer->slug }}</td>
                                         <td class="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-md">
                                             <div class="line-clamp-2">{{ $offer->description }}</div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-2 py-1">{{ \App\Models\Offer::$states[$offer->state] }}</span>
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-2 py-1">
+                                                {{ \App\Domain\Offers\ValueObjects\OfferState::labels()[$offer->state->value] ?? $offer->state->value }}
+                                            </span>
                                         </td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                                            <x-primary-link href="{{ route('offers.edit', $offer) }}">Modifier</x-primary-link>
+                                            @can('admin')
+                                                <x-primary-link href="{{ route('offers.edit', $offer->id->value) }}">Modifier</x-primary-link>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ $offers->links() }}
                     </div>
 
                 </div>

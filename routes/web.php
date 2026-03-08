@@ -1,14 +1,21 @@
 <?php
 
-use App\Http\Controllers\OfferController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/docs', function () {
+    return redirect('/docs/index.html');
+});
+
+Route::pattern('offerId', '[0-9]+');
+Route::pattern('productId', '[0-9]+');
 
 Route::get('/dashboard', [DashboardController::class, 'show'])->middleware('auth')->name('dashboard');
 

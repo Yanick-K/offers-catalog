@@ -1,0 +1,11 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    bootstrapFiles:
+        - vendor/laravel/prompts/src/helpers.php
+    paths:
+        - app
+        - database
+        - routes
