@@ -22,6 +22,7 @@
         "trailing_comma_in_multiline": true,
         "no_superfluous_phpdoc_tags": true,
         "phpdoc_align": true,
-        "phpdoc_order": true
+        "phpdoc_order": true,
+        "php_unit_method_casing": false
     }
 }
