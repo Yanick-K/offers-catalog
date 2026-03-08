@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Offers\ValueObjects;
 
 enum OfferState: string
@@ -11,9 +13,9 @@ enum OfferState: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Brouillon',
-            self::Published => 'Publié',
-            self::Hidden => 'Masqué',
+            self::Draft => 'Draft',
+            self::Published => 'Published',
+            self::Hidden => 'Hidden',
         };
     }
 

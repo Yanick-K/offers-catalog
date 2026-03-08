@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Repositories\Mappers;
 
 use App\Domain\Offers\ValueObjects\OfferId;
 use App\Domain\Products\Entities\Product;
 use App\Domain\Products\ValueObjects\ProductId;
+use App\Domain\Shared\ValueObjects\Money;
 use App\Domain\Shared\ValueObjects\PaginatedResult;
 use App\Models\Product as ProductModel;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,7 +21,7 @@ class ProductMapper
             offerId: new OfferId($model->offer_id),
             name: $model->name,
             sku: $model->sku,
-            price: (string) $model->price,
+            priceInCents: Money::fromDecimalString((string) $model->price)->cents,
             state: $model->state,
             image: $model->image,
         );
@@ -33,14 +36,14 @@ class ProductMapper
             'offer_id' => $product->offerId->value,
             'name' => $product->name,
             'sku' => $product->sku,
-            'price' => $product->price,
+            'price' => Money::fromCents($product->priceInCents)->toDecimalString(),
             'state' => $product->state->value,
             'image' => $product->image,
         ];
     }
 
     /**
-     * @param  LengthAwarePaginator<ProductModel>  $paginator
+     * @param LengthAwarePaginator<ProductModel> $paginator
      */
     public function toPaginatedResult(LengthAwarePaginator $paginator): PaginatedResult
     {

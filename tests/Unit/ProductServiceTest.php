@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Application\Products\DTO\ProductData;
@@ -26,7 +28,7 @@ class ProductServiceTest extends TestCase
 
         $data = ProductData::fromArray(
             [
-                'name' => 'Produit Test',
+                'name' => 'Test Product',
                 'sku' => 'SKU-TEST-1',
                 'price' => '19.90',
                 'state' => ProductState::Published->value,
@@ -55,7 +57,7 @@ class ProductServiceTest extends TestCase
 
         $data = ProductData::fromArray(
             [
-                'name' => 'Produit Maj',
+                'name' => 'Updated Product',
                 'sku' => $product->sku,
                 'price' => '29.90',
                 'state' => ProductState::Published->value,
@@ -69,6 +71,6 @@ class ProductServiceTest extends TestCase
 
         Storage::disk('public')->assertMissing('products/old.jpg');
         Storage::disk('public')->assertExists($product->image);
-        $this->assertSame('Produit Maj', $product->name);
+        $this->assertSame('Updated Product', $product->name);
     }
 }

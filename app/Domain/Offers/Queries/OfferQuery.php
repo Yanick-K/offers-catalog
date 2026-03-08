@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Offers\Queries;
 
 use App\Domain\Offers\Entities\Offer;

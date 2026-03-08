@@ -46,7 +46,7 @@
                                         </td>
                                         <td class="px-4 py-3 font-medium">{{ $product->name }}</td>
                                         <td class="px-4 py-3">{{ $product->sku }}</td>
-                                        <td class="px-4 py-3">{{ number_format((float)$product->price, 2, ',', ' ') }} €</td>
+                                        <td class="px-4 py-3">{{ number_format(\App\Domain\Shared\ValueObjects\Money::fromCents($product->priceInCents)->toFloat(), 2, ',', ' ') }} €</td>
                                         <td class="px-4 py-3">
                                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                                                 {{ \App\Domain\Products\ValueObjects\ProductState::labels()[$product->state->value] ?? $product->state->value }}

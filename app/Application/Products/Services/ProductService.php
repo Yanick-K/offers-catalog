@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Products\Services;
 
 use App\Application\Products\DTO\ProductData;
@@ -28,7 +30,7 @@ class ProductService
             offerId: $offerId,
             name: $data->name,
             sku: $data->sku,
-            price: $data->price,
+            priceInCents: $data->priceInCents,
             state: $data->state,
             image: $imagePath,
         );
@@ -45,6 +47,7 @@ class ProductService
 
         $imagePath = $existing->image;
         if ($data->image) {
+            // Old image cleanup is handled by the ProductObserver.
             $imagePath = $this->imageUploader->upload($data->image, 'products');
         }
 
@@ -53,7 +56,7 @@ class ProductService
             offerId: $offerId,
             name: $data->name,
             sku: $data->sku,
-            price: $data->price,
+            priceInCents: $data->priceInCents,
             state: $data->state,
             image: $imagePath,
         );

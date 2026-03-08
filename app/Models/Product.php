@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Domain\Products\ValueObjects\ProductState;
@@ -28,7 +30,7 @@ class Product extends Model
     ];
 
     /**
-     * @param  Builder<Product>  $query
+     * @param  Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopePublished(Builder $query): Builder

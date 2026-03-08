@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Files;
 
 use App\Domain\Shared\ValueObjects\ImageExtension;
@@ -20,15 +22,15 @@ class RemoteImageStore
         try {
             $response = Http::timeout(10)->retry(2, 200)->get($url);
         } catch (Throwable) {
-            return $this->storeFallbackSvg($path.'.'.ImageExtension::Svg->value, $fallbackLabel);
+            return $this->storeFallbackSvg($path . '.' . ImageExtension::Svg->value, $fallbackLabel);
         }
 
         if (! $response->successful()) {
-            return $this->storeFallbackSvg($path.'.'.ImageExtension::Svg->value, $fallbackLabel);
+            return $this->storeFallbackSvg($path . '.' . ImageExtension::Svg->value, $fallbackLabel);
         }
 
         $extension = ImageExtension::fromContentType($response->header('Content-Type'));
-        $imagePath = $path.'.'.$extension->value;
+        $imagePath = $path . '.' . $extension->value;
 
         Storage::disk('public')->put($imagePath, $response->body());
 

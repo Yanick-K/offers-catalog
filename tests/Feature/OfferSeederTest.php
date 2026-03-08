@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Database\Seeders\OfferSeeder;
@@ -20,6 +22,6 @@ class OfferSeederTest extends TestCase
         $this->seed(OfferSeeder::class);
 
         Http::assertNothingSent();
-        Storage::disk('public')->assertExists('seed/offers/offer-offre-starter.svg');
+        Storage::disk('public')->assertExists('seed/offers/offer-starter-offer.svg');
     }
 }

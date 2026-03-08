@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Application\Offers\DTO\OfferData;
@@ -25,9 +27,9 @@ class OfferServiceTest extends TestCase
 
         $data = OfferData::fromArray(
             [
-                'name' => 'Offre Test',
-                'slug' => 'offre-test',
-                'description' => 'Description test',
+                'name' => 'Test Offer',
+                'slug' => 'test-offer',
+                'description' => 'Test description',
                 'state' => OfferState::Draft->value,
             ],
             UploadedFile::fake()->image('offer.jpg')
@@ -35,7 +37,7 @@ class OfferServiceTest extends TestCase
 
         $offer = $service->create($data);
 
-        $this->assertDatabaseHas('offers', ['id' => $offer->id->value, 'name' => 'Offre Test']);
+        $this->assertDatabaseHas('offers', ['id' => $offer->id->value, 'name' => 'Test Offer']);
         Storage::disk('public')->assertExists($offer->image);
     }
 
@@ -54,9 +56,9 @@ class OfferServiceTest extends TestCase
 
         $data = OfferData::fromArray(
             [
-                'name' => 'Offre Maj',
-                'slug' => 'offre-maj',
-                'description' => 'Nouvelle description',
+                'name' => 'Updated Offer',
+                'slug' => 'updated-offer',
+                'description' => 'Updated description',
                 'state' => OfferState::Published->value,
             ],
             UploadedFile::fake()->image('new.jpg')
@@ -68,7 +70,7 @@ class OfferServiceTest extends TestCase
 
         Storage::disk('public')->assertMissing('offers/old.jpg');
         Storage::disk('public')->assertExists($offer->image);
-        $this->assertSame('offre-maj', $offer->slug);
+        $this->assertSame('updated-offer', $offer->slug);
     }
 
     public function test_it_deletes_offer_and_associated_images(): void

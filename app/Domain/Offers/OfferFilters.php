@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Offers;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -15,7 +17,7 @@ final readonly class OfferFilters
     ) {}
 
     /**
-     * @param  array{state?: string|null, name?: string|null, slug?: string|null, sort?: string|null, direction?: string|null}  $data
+     * @param array{state?: string|null, name?: string|null, slug?: string|null, sort?: string|null, direction?: string|null} $data
      */
     public static function fromArray(array $data): self
     {

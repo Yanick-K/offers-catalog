@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Shared\ValueObjects;
 
 final readonly class PaginatedResult
 {
     /**
-     * @param  array<int, mixed>  $items
+     * @param list<mixed> $items
      */
     public function __construct(
         public array $items,

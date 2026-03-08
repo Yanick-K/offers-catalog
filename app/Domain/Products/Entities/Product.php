@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Products\Entities;
 
 use App\Domain\Offers\ValueObjects\OfferId;
@@ -13,7 +15,7 @@ final readonly class Product
         public OfferId $offerId,
         public string $name,
         public string $sku,
-        public string $price,
+        public int $priceInCents,
         public ProductState $state,
         public ?string $image,
     ) {}

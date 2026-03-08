@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Repositories;
 
 use App\Domain\Offers\Entities\Offer;
@@ -66,11 +68,11 @@ class EloquentOfferRepository implements OfferRepository
         }
 
         if ($filters->name) {
-            $query->where('name', 'like', '%'.$filters->name.'%');
+            $query->where('name', 'like', '%' . $filters->name . '%');
         }
 
         if ($filters->slug) {
-            $query->where('slug', 'like', '%'.$filters->slug.'%');
+            $query->where('slug', 'like', '%' . $filters->slug . '%');
         }
 
         $sort = $filters->sort ?? self::DEFAULT_SORT;

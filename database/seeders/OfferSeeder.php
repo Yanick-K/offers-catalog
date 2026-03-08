@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -19,22 +21,22 @@ class OfferSeeder extends Seeder
 
         $offers = [
             [
-                'name' => 'Offre Starter',
-                'slug' => 'offre-starter',
+                'name' => 'Starter Offer',
+                'slug' => 'starter-offer',
                 'state' => OfferState::Published,
-                'description' => 'Une offre simple pour demarrer rapidement.',
+                'description' => 'A simple offer to get started quickly.',
             ],
             [
-                'name' => 'Offre Premium',
-                'slug' => 'offre-premium',
+                'name' => 'Premium Offer',
+                'slug' => 'premium-offer',
                 'state' => OfferState::Draft,
-                'description' => 'Une offre complete avec options avancees.',
+                'description' => 'A full offer with advanced options.',
             ],
             [
-                'name' => 'Offre Enterprise',
-                'slug' => 'offre-enterprise',
+                'name' => 'Enterprise Offer',
+                'slug' => 'enterprise-offer',
                 'state' => OfferState::Hidden,
-                'description' => 'Une offre sur-mesure pour les grands comptes.',
+                'description' => 'A tailored offer for enterprise customers.',
             ],
         ];
 
@@ -55,19 +57,19 @@ class OfferSeeder extends Seeder
 
             $products = [
                 [
-                    'name' => 'Pack Base',
+                    'name' => 'Base Pack',
                     'sku' => sprintf('SKU-%s-BASE', Str::upper(Str::slug($offer->slug))),
                     'state' => ProductState::Published,
                     'price' => '29.90',
                 ],
                 [
-                    'name' => 'Pack Plus',
+                    'name' => 'Plus Pack',
                     'sku' => sprintf('SKU-%s-PLUS', Str::upper(Str::slug($offer->slug))),
                     'state' => ProductState::Draft,
                     'price' => '59.90',
                 ],
                 [
-                    'name' => 'Pack Max',
+                    'name' => 'Max Pack',
                     'sku' => sprintf('SKU-%s-MAX', Str::upper(Str::slug($offer->slug))),
                     'state' => ProductState::Invisible,
                     'price' => '89.90',

@@ -1,65 +1,50 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-SAIL := $(ROOT)/vendor/bin/sail
 OFFERS ?= 3
 PRODUCTS ?= 3
 
-.PHONY: sail-up sail-down sail-restart sail-logs setup migrate seed seed-base seed-remote reset dev test phpstan deptrac pint lint ci test-all
+.PHONY: setup reset dev dev-detach dev-stop lint pint phpstan deptrac test test-all ci seed seed-base seed-remote
 
-sail-up:
-	"$(SAIL)" up -d
+setup:
+	sh "$(ROOT)/tools/dev.sh" --setup
 
-sail-down:
-	"$(SAIL)" down
+reset:
+	sh "$(ROOT)/tools/dev.sh" --reset
 
-sail-restart:
-	"$(SAIL)" down
-	"$(SAIL)" up -d
+dev:
+	sh "$(ROOT)/tools/dev.sh"
 
-sail-logs:
-	"$(SAIL)" logs -f
+dev-detach:
+	sh "$(ROOT)/tools/dev.sh" --detach
 
-setup: sail-up
-	"$(SAIL)" composer install
-	"$(SAIL)" npm ci
-	"$(SAIL)" artisan key:generate
-	"$(SAIL)" artisan migrate --seed
-	"$(SAIL)" artisan storage:link
+dev-stop:
+	sh "$(ROOT)/tools/dev.sh" --stop
 
-migrate: sail-up
-	"$(SAIL)" artisan migrate
+seed:
+	php artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS)
 
-seed: sail-up
-	"$(SAIL)" artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS)
+seed-base:
+	php artisan db:seed
 
-seed-base: sail-up
-	"$(SAIL)" artisan db:seed
+seed-remote:
+	php artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS) --remote
 
-seed-remote: sail-up
-	"$(SAIL)" artisan demo:seed --offers=$(OFFERS) --products=$(PRODUCTS) --remote
+lint:
+	./vendor/bin/pint --test
 
-reset: sail-up
-	"$(SAIL)" artisan migrate:fresh --seed
+pint:
+	./vendor/bin/pint
 
-dev: sail-up
-	"$(SAIL)" php artisan serve & \
-	"$(SAIL)" php artisan queue:work
+phpstan:
+	./vendor/bin/phpstan analyse
 
-test: sail-up
-	"$(SAIL)" artisan migrate
-	"$(SAIL)" php artisan test
+deptrac:
+	./vendor/bin/deptrac analyse --config-file=deptrac.yaml
 
-phpstan: sail-up
-	"$(SAIL)" ./vendor/bin/phpstan analyse
+test:
+	php artisan migrate
+	php artisan test
 
-deptrac: sail-up
-	"$(SAIL)" ./vendor/bin/deptrac analyse --config-file=deptrac.yaml
+test-all:
+	sh "$(ROOT)/tools/test-all.sh"
 
-pint: sail-up
-	"$(SAIL)" ./vendor/bin/pint
-
-lint: sail-up
-	"$(SAIL)" ./vendor/bin/pint --test
-
-ci: sail-up lint phpstan deptrac test
-
-test-all: ci
+ci: lint phpstan deptrac test

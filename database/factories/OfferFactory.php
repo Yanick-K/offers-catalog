@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -23,7 +25,7 @@ class OfferFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(100, 999),
+            'slug' => Str::slug($name) . '-' . fake()->unique()->numberBetween(100, 999),
             'description' => fake()->sentence(),
             'image' => 'seed/offers/placeholder.svg',
             'state' => fake()->randomElement(OfferState::values()),

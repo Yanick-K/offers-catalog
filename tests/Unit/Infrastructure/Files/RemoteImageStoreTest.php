@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Infrastructure\Files;
 
 use App\Infrastructure\Files\RemoteImageStore;
@@ -16,7 +18,7 @@ class RemoteImageStoreTest extends TestCase
             '*' => Http::response('', 500),
         ]);
 
-        $store = new RemoteImageStore();
+        $store = new RemoteImageStore;
         $path = $store->store('seed/offers', 'offline-seed', 'Fallback');
 
         $this->assertStringEndsWith('.svg', $path);

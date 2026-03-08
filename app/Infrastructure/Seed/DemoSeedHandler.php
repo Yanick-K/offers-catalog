@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Seed;
 
 use App\Infrastructure\Files\LocalImageStore;
@@ -22,7 +24,7 @@ class DemoSeedHandler
         $images = $useRemote ? $this->remoteImages : $this->localImages;
 
         for ($i = 0; $i < $offers; $i++) {
-            $offerImage = $images->store('seed/offers', 'offer-'.Str::uuid());
+            $offerImage = $images->store('seed/offers', 'offer-' . Str::uuid());
             $offer = Offer::factory()->create([
                 'image' => $offerImage,
             ]);
@@ -30,7 +32,7 @@ class DemoSeedHandler
             for ($j = 0; $j < $products; $j++) {
                 $productImage = $images->store(
                     'seed/products',
-                    'product-'.$offer->id.'-'.Str::uuid()
+                    'product-' . $offer->id . '-' . Str::uuid()
                 );
 
                 Product::factory()

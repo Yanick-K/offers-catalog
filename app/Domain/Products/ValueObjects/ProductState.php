@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Products\ValueObjects;
 
 enum ProductState: string
@@ -11,8 +13,8 @@ enum ProductState: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Brouillon',
-            self::Published => 'Publié',
+            self::Draft => 'Draft',
+            self::Published => 'Published',
             self::Invisible => 'Invisible',
         };
     }

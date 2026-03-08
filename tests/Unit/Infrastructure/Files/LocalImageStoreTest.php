@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Infrastructure\Files;
 
 use App\Infrastructure\Files\LocalImageStore;
@@ -12,7 +14,7 @@ class LocalImageStoreTest extends TestCase
     {
         Storage::fake('public');
 
-        $store = new LocalImageStore();
+        $store = new LocalImageStore;
         $path = $store->store('seed/offers', 'local-seed', 'Local');
 
         $this->assertStringEndsWith('.svg', $path);

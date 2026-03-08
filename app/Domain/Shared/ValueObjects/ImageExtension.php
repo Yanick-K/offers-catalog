@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Shared\ValueObjects;
 
 enum ImageExtension: string
@@ -13,6 +15,10 @@ enum ImageExtension: string
     public static function fromContentType(?string $contentType): self
     {
         $type = strtolower((string) $contentType);
+
+        if (str_contains($type, 'image/jpeg') || str_contains($type, 'image/jpg') || str_contains($type, 'image/pjpeg')) {
+            return self::Jpg;
+        }
 
         if (str_contains($type, 'image/png')) {
             return self::Png;
@@ -30,6 +36,7 @@ enum ImageExtension: string
             return self::Svg;
         }
 
+        // Default to JPG for unknown content types.
         return self::Jpg;
     }
 }

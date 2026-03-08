@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Offers\Entities;
 
 use App\Domain\Offers\ValueObjects\OfferId;
@@ -9,7 +11,7 @@ use App\Domain\Products\Entities\Product;
 final readonly class Offer
 {
     /**
-     * @param  array<int, Product>  $products
+     * @param array<int, Product> $products
      */
     public function __construct(
         public ?OfferId $id,
@@ -22,7 +24,7 @@ final readonly class Offer
     ) {}
 
     /**
-     * @param  array<int, Product>  $products
+     * @param array<int, Product> $products
      */
     public function withProducts(array $products): self
     {

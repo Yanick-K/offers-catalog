@@ -45,6 +45,22 @@ print_finished() {
   printf '\nfinished in: %s%ss%s\n' "$BOLD_GREEN" "$elapsed" "$RESET"
 }
 
+print_log_snapshot() {
+  label=$1
+  file=$2
+  if [ -s "$file" ]; then
+    awk -v prefix="[$label] " '
+      BEGIN { prev = "" }
+      {
+        if ($0 ~ /^[[:space:]]*$/) next;
+        if ($0 == prev) next;
+        prev = $0;
+        print prefix $0;
+      }
+    ' "$file"
+  fi
+}
+
 run_step() {
   label=$1
   shift
@@ -124,6 +140,32 @@ read_pid() {
   fi
 }
 
+terminate_process() {
+  pid=$1
+  if [ -z "${pid:-}" ]; then
+    return
+  fi
+
+  for child in $(ps -o pid= --ppid "$pid" 2>/dev/null); do
+    terminate_process "$child"
+  done
+
+  kill -TERM "$pid" 2>/dev/null || true
+}
+
+force_kill_process() {
+  pid=$1
+  if [ -z "${pid:-}" ]; then
+    return
+  fi
+
+  for child in $(ps -o pid= --ppid "$pid" 2>/dev/null); do
+    force_kill_process "$child"
+  done
+
+  kill -KILL "$pid" 2>/dev/null || true
+}
+
 stop_if_exists() {
   file=$1
   name=$2
@@ -132,7 +174,7 @@ stop_if_exists() {
   if [ -n "${pid:-}" ] && is_running "$pid"; then
     print_step "stop $name"
     started=$(date +%s)
-    kill "$pid" 2>/dev/null || true
+    terminate_process "$pid"
 
     i=0
     while [ "$i" -lt 10 ]; do
@@ -143,9 +185,7 @@ stop_if_exists() {
       i=$((i + 1))
     done
 
-    if is_running "$pid"; then
-      kill -9 "$pid" 2>/dev/null || true
-    fi
+    force_kill_process "$pid"
 
     ended=$(date +%s)
     print_finished "$((ended - started))"
@@ -158,17 +198,17 @@ cleanup() {
   exit_code=$?
 
   if [ -n "${TAIL_PID:-}" ]; then
-    kill "$TAIL_PID" 2>/dev/null || true
+    terminate_process "$TAIL_PID"
     wait "$TAIL_PID" 2>/dev/null || true
   fi
 
   if [ -n "${SERVER_PID:-}" ]; then
-    kill "$SERVER_PID" 2>/dev/null || true
+    terminate_process "$SERVER_PID"
     wait "$SERVER_PID" 2>/dev/null || true
   fi
 
   if [ -n "${QUEUE_PID:-}" ]; then
-    kill "$QUEUE_PID" 2>/dev/null || true
+    terminate_process "$QUEUE_PID"
     wait "$QUEUE_PID" 2>/dev/null || true
   fi
 
@@ -213,7 +253,7 @@ fi
 
 start_server() {
   : > "$SERVER_LOG"
-  php artisan serve >> "$SERVER_LOG" 2>&1 &
+  php artisan serve --no-reload >> "$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
   printf '%s\n' "$SERVER_PID" > "$SERVER_PID_FILE"
   sleep 1
@@ -221,6 +261,8 @@ start_server() {
     printf 'Server failed to start. Check %s\n' "$SERVER_LOG" >&2
     return 1
   fi
+
+  print_log_snapshot server "$SERVER_LOG"
 }
 
 start_queue() {
@@ -233,6 +275,8 @@ start_queue() {
     printf 'Queue worker failed to start. Check %s\n' "$QUEUE_LOG" >&2
     return 1
   fi
+
+  print_log_snapshot queue "$QUEUE_LOG"
 }
 
 run_step "server" start_server
@@ -244,11 +288,15 @@ fi
 
 trap cleanup EXIT INT TERM
 
-(tail -n 20 -F "$SERVER_LOG" "$QUEUE_LOG" 2>/dev/null | awk '
+(tail -n 0 -F "$SERVER_LOG" "$QUEUE_LOG" 2>/dev/null | awk '
   BEGIN { current = "" }
   /^==> .*dev-server\.log <==$/ { current = "server"; next }
   /^==> .*dev-queue\.log <==$/  { current = "queue"; next }
   {
+    if ($0 ~ /^[[:space:]]*$/) next;
+    key = current != "" ? current : "default";
+    if ($0 == prev[key]) next;
+    prev[key] = $0;
     if (current == "server") print "[server] " $0;
     else if (current == "queue") print "[queue ] " $0;
     else print $0;

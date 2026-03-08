@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -26,7 +28,7 @@ class Offer extends Model
     ];
 
     /**
-     * @param  Builder<Offer>  $query
+     * @param  Builder<Offer> $query
      * @return Builder<Offer>
      */
     public function scopeOfState(Builder $query, OfferState|string $state): Builder
@@ -37,7 +39,7 @@ class Offer extends Model
     }
 
     /**
-     * @param  Builder<Offer>  $query
+     * @param  Builder<Offer> $query
      * @return Builder<Offer>
      */
     public function scopePublished(Builder $query): Builder

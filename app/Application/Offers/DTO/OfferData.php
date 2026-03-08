@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Offers\DTO;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -16,7 +18,7 @@ final readonly class OfferData
     ) {}
 
     /**
-     * @param  array{name: string, slug: string, description?: string|null, state: string}  $data
+     * @param array{name: string, slug: string, description?: string|null, state: string} $data
      */
     public static function fromArray(array $data, ?UploadedFile $image): self
     {

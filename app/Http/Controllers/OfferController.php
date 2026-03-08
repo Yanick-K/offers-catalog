@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Application\Offers\DTO\OfferData;
 use App\Application\Offers\Services\OfferService;
 use App\Domain\Offers\Queries\OfferQuery;
-use App\Domain\Offers\ValueObjects\OfferId;
+use App\Http\Controllers\Concerns\ResolvesDomainIds;
 use App\Http\Requests\Offer\StoreOfferRequest;
 use App\Http\Requests\Offer\UpdateOfferRequest;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
 
 class OfferController extends Controller
 {
+    use ResolvesDomainIds;
+
     public function create(): View
     {
         $this->authorize('admin');
@@ -36,7 +40,7 @@ class OfferController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $query->get($this->toOfferId($offerId));
+        $offer = $query->getWithProducts($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }
@@ -51,7 +55,7 @@ class OfferController extends Controller
         /** @var array{name: string, slug: string, description?: string|null, state: string} $validated */
         $validated = $request->validated();
         $data = OfferData::fromArray($validated, $request->file('image'));
-        $updated = $service->update($this->toOfferId($offerId), $data);
+        $updated = $service->update($this->offerIdFromRoute($offerId), $data);
         if (! $updated) {
             abort(404);
         }
@@ -63,7 +67,7 @@ class OfferController extends Controller
     {
         $this->authorize('admin');
 
-        $service->delete($this->toOfferId($offerId));
+        $service->delete($this->offerIdFromRoute($offerId));
 
         return redirect()->route('dashboard');
     }
@@ -72,25 +76,11 @@ class OfferController extends Controller
     {
         $this->authorize('admin');
 
-        $offer = $query->getWithProducts($this->toOfferId($offerId));
+        $offer = $query->getWithProducts($this->offerIdFromRoute($offerId));
         if (! $offer) {
             abort(404);
         }
 
         return view('offers.show', compact('offer'));
-    }
-
-    private function toOfferId(string $offerId): OfferId
-    {
-        if (! ctype_digit($offerId)) {
-            abort(404);
-        }
-
-        $id = (int) $offerId;
-        if ($id < 1) {
-            abort(404);
-        }
-
-        return new OfferId($id);
     }
 }

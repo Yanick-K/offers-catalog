@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +22,7 @@ class AuditLog extends Model
     ];
 
     /**
-     * @param  array<string, mixed>  $changes
+     * @param array<string, mixed> $changes
      */
     public static function record(Model $model, string $action, array $changes = []): void
     {

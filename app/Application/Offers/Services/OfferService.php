@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Offers\Services;
 
 use App\Application\Offers\DTO\OfferData;
@@ -43,6 +45,7 @@ class OfferService
 
         $imagePath = $existing->image;
         if ($data->image) {
+            // Old image cleanup is handled by the OfferObserver.
             $imagePath = $this->imageUploader->upload($data->image, 'offers');
         }
 

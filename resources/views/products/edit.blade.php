@@ -37,7 +37,7 @@
                             </div>
                             <div>
                                 <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Prix</label>
-                                <input type="number" step="0.01" min="0" name="price" id="price" value="{{ old('price', $product->price) }}" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
+                                <input type="number" step="0.01" min="0" name="price" id="price" value="{{ old('price', \App\Domain\Shared\ValueObjects\Money::fromCents($product->priceInCents)->toDecimalString()) }}" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 @error('price')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                                 @enderror

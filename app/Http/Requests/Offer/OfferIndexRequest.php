@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Offer;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -14,7 +16,7 @@ class OfferIndexRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('admin');
     }
 
     /**
@@ -28,18 +30,6 @@ class OfferIndexRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255'],
             'sort' => ['nullable', Rule::in(self::SORTABLE)],
             'direction' => ['nullable', Rule::in(self::DIRECTIONS)],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'state' => 'etat',
-            'name' => 'nom',
-            'slug' => 'slug',
         ];
     }
 }

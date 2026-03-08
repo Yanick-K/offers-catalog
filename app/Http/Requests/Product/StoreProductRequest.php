@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Product;
 
 use App\Domain\Products\ValueObjects\ProductState;
@@ -10,7 +12,7 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('admin');
     }
 
     /**
@@ -24,20 +26,6 @@ class StoreProductRequest extends FormRequest
             'image' => ['required', 'image', 'max:2048'],
             'price' => ['required', 'numeric', 'min:0'],
             'state' => ['required', Rule::in(ProductState::values())],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'name' => 'nom',
-            'sku' => 'sku',
-            'image' => 'image',
-            'price' => 'prix',
-            'state' => 'etat',
         ];
     }
 }

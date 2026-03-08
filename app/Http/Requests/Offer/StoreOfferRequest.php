@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Offer;
 
 use App\Domain\Offers\ValueObjects\OfferState;
@@ -10,7 +12,7 @@ class StoreOfferRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('admin');
     }
 
     /**
@@ -24,20 +26,6 @@ class StoreOfferRequest extends FormRequest
             'image' => ['required', 'image', 'max:2048'],
             'description' => ['nullable', 'string', 'max:255'],
             'state' => ['required', Rule::in(OfferState::values())],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'name' => 'nom',
-            'slug' => 'slug',
-            'image' => 'image',
-            'description' => 'description',
-            'state' => 'etat',
         ];
     }
 }

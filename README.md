@@ -55,7 +55,7 @@ Votre mission est d’améliorer techniquement l’application existante autour 
 - Documentation API (OpenAPI/Swagger), versionnement API, pagination/tri/filtrage RESTful.
 - Optimisations perfs (index DB, N+1, caches, Eager Loading par défaut, Scopes).
 - CI (GitHub Actions) exécutant lint + static analysis + tests.
-- Docker/Sail prêt à l’emploi, Makefile ou scripts pour simplifier les commandes.
+- Makefile ou scripts pour simplifier les commandes.
 - Observers, Events/Listeners, Notifications, Queues (jobs pour traitement d’images par ex.).
 
 ## Critères d’évaluation
@@ -84,39 +84,17 @@ Prérequis
 - Composer 2
 - Node 18+ et npm
 - MySQL/MariaDB (ou SQLite si vous préférez pour l’exercice)
-- Optionnel: Docker + Laravel Sail
 
-Étapes rapides (local hors Docker)
-1. Cloner le repo et installer les dépendances
-   - composer install
-   - npm ci
-2. Copier l’environnement
+Étapes rapides (local)
+1. Copier l’environnement
    - cp .env.example .env
    - Configurer la base de données (DB_*) et le stockage local.
-3. Générer la clé d’application
-   - php artisan key:generate
-4. Exécuter les migrations et seeders
-   - php artisan migrate --seed
-   - Optionnel (jeu de données dynamique): php artisan demo:seed --offers=10 --products=5
-   - Optionnel (images distantes): php artisan demo:seed --offers=10 --products=5 --remote
-5. Lier le stockage public
-   - php artisan storage:link
-6. Builder les assets (si UI utilisée)
+2. Installer et initialiser
+   - make setup
+3. Builder les assets (si UI utilisée)
    - npm run build (ou npm run dev pour le watch)
-7. Lancer l’application
-   - php artisan serve (ou via votre stack locale)
-
-Étapes avec Sail (optionnel)
-1. composer install && cp .env.example .env
-2. ./vendor/bin/sail up -d
-3. ./vendor/bin/sail artisan key:generate
-4. ./vendor/bin/sail artisan migrate --seed
-   - Optionnel (jeu de données dynamique): ./vendor/bin/sail artisan demo:seed --offers=10 --products=5
-   - Optionnel (images distantes): ./vendor/bin/sail artisan demo:seed --offers=10 --products=5 --remote
-5. ./vendor/bin/sail artisan storage:link
-6. ./vendor/bin/sail npm ci && ./vendor/bin/sail npm run build
-7. Scripts alternatifs dans `tools/` (Makefile et shell).
-   - Local: `tools/dev.sh` (serveur + queue) et `tools/test-all.sh` (lint + analyse statique + tests).
+4. Lancer l’application
+   - make dev
 
 Tests et qualité
 - Migrations (si besoin): php artisan migrate
@@ -136,9 +114,10 @@ Tests et qualité
 - Shared: port `ImageUploader` pour découpler l'upload d'images.
 
 ### Validations et robustesse
-- FormRequests dédiés (create/update/index) avec règles explicites et messages plus lisibles via `attributes`.
+- FormRequests dédiés (create/update/index) avec règles explicites.
 - Service d'upload image isolé (`ImageUploader`) et suppression des anciens fichiers via observers.
 - Pagination ajoutée sur le back-office et l'API; tri côté back via `sort`/`direction`.
+- Prix gérés via `Money` (centimes) dans le domaine, convertis pour la persistance et l'affichage.
 
 ### Droits et sécurité
 - Gate `admin` basé sur `users.is_admin` pour restreindre le back-office.
@@ -147,6 +126,7 @@ Tests et qualité
 ### Observers et audits
 - `OfferObserver` et `ProductObserver` pour la gestion des fichiers et l'invalidation du cache.
 - Table `audit_logs` pour tracer create/update/delete (user + changements).
+- Les anciens fichiers d'image sont supprimés par les observers (tests: `ImageCleanupTest`, `OfferServiceTest`, `ProductServiceTest`).
 
 ### Performance
 - Index sur `offers.state` et `products.state`.
@@ -173,22 +153,16 @@ Tests et qualité
 - Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
 - Laravel Pint déjà présent: `vendor/bin/pint`.
 
-### Commandes de base
-
-Sail:
+### Commandes de base (local)
 - `make setup`
 - `make reset`
 - `make dev`
+- `make dev-detach`
+- `make dev-stop`
 - `make lint`
 - `make test-all` (ou `make ci`)
 - `make seed OFFERS=10 PRODUCTS=5` (ou `make seed-base`)
 - `make seed-remote OFFERS=10 PRODUCTS=5`
-
-Local (sans Docker):
-- `sh tools/dev.sh --setup`
-- `sh tools/dev.sh --reset`
-- `sh tools/dev.sh`
-- `sh tools/test-all.sh`
 
 Plus d'options dans `tools/README.md`.
 
@@ -199,9 +173,10 @@ Plus d'options dans `tools/README.md`.
 - Activer le hook pre-commit: `git config core.hooksPath .githooks` (puis `pint --test` ou `php-cs-fixer` sont lancés au commit).
 
 ### Temps passé
-- Environ 4-5 heures.
+- Environ 7-8 heures.
 
 ### Avec plus de temps
 - Rôles/permissions plus fines (owner, équipes, multi-tenancy).
 - Audit UI + exports (CSV) et politique de rétention.
 - Cache distribué avec tags + warmup.
+- Docker/Sail pour des environnements homogènes.
