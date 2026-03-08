@@ -98,6 +98,7 @@ Prérequis
 4. Exécuter les migrations et seeders
    - php artisan migrate --seed
    - Optionnel (jeu de données dynamique): php artisan demo:seed --offers=10 --products=5
+   - Optionnel (images distantes): php artisan demo:seed --offers=10 --products=5 --remote
 5. Lier le stockage public
    - php artisan storage:link
 6. Builder les assets (si UI utilisée)
@@ -111,9 +112,10 @@ Prérequis
 3. ./vendor/bin/sail artisan key:generate
 4. ./vendor/bin/sail artisan migrate --seed
    - Optionnel (jeu de données dynamique): ./vendor/bin/sail artisan demo:seed --offers=10 --products=5
+   - Optionnel (images distantes): ./vendor/bin/sail artisan demo:seed --offers=10 --products=5 --remote
 5. ./vendor/bin/sail artisan storage:link
 6. ./vendor/bin/sail npm ci && ./vendor/bin/sail npm run build
-7. Scripts alternatifs dans `tools/` (Makefile, Python, Rust).
+7. Scripts alternatifs dans `tools/` (Makefile et shell).
    - Local: `tools/dev.sh` (serveur + queue) et `tools/test-all.sh` (lint + analyse statique + tests).
 
 Tests et qualité
@@ -127,6 +129,7 @@ Tests et qualité
 
 ### Architecture et séparation
 - DDD light Domain/Application/Infrastructure avec deptrac pour verrouiller les dépendances.
+- Choix assumé pour isoler le domaine des détails Eloquent et garder des frontières testables, tout en restant léger vu la simplicité métier.
 - Domain: Entities, ValueObjects, Queries et interfaces de repository (`App\Domain\...`).
 - Application: DTOs + services d'usage (`App\Application\Offers\Services\OfferService`, `App\Application\Products\Services\ProductService`).
 - Infrastructure: repositories Eloquent + cache (`EloquentOfferRepository`, `PublicOfferCache`) + `StorageImageUploader`.
@@ -138,7 +141,7 @@ Tests et qualité
 - Pagination ajoutée sur le back-office et l'API; tri côté back via `sort`/`direction`.
 
 ### Droits et sécurité
-- Policies Offer/Product basées sur `users.is_admin` pour restreindre le back-office.
+- Gate `admin` basé sur `users.is_admin` pour restreindre le back-office.
 - Compte démo admin: `test@example.com` / `password`.
 
 ### Observers et audits
@@ -156,8 +159,9 @@ Tests et qualité
 - `GET /api/v1/offers` paginé, accepte `per_page` (1-100) et retourne uniquement les offres/produits publiés.
 
 ### Seeders
-- `OfferSeeder` crée un jeu de données cohérent (offres + produits, états variés) avec images réelles issues d'une API libre.
+- `OfferSeeder` crée un jeu de données cohérent (offres + produits, états variés) avec images locales.
 - Commande `demo:seed --offers=10 --products=5` pour injecter un volume de données à la volée.
+- Option images distantes: `demo:seed --offers=10 --products=5 --remote`.
 - Sans options, `demo:seed` passe en mode interactif.
 
 ### Tests ajoutés
@@ -178,6 +182,7 @@ Sail:
 - `make lint`
 - `make test-all` (ou `make ci`)
 - `make seed OFFERS=10 PRODUCTS=5` (ou `make seed-base`)
+- `make seed-remote OFFERS=10 PRODUCTS=5`
 
 Local (sans Docker):
 - `sh tools/dev.sh --setup`

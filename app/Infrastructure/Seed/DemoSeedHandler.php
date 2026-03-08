@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Seed;
 
+use App\Infrastructure\Files\LocalImageStore;
 use App\Infrastructure\Files\RemoteImageStore;
 use App\Models\Offer;
 use App\Models\Product;
@@ -10,20 +11,24 @@ use Illuminate\Support\Str;
 
 class DemoSeedHandler
 {
-    public function __construct(private readonly RemoteImageStore $images) {}
+    public function __construct(
+        private readonly RemoteImageStore $remoteImages,
+        private readonly LocalImageStore $localImages,
+    ) {}
 
-    public function handle(int $offers, int $products): void
+    public function handle(int $offers, int $products, bool $useRemote = false): void
     {
         $this->ensureAdminUser();
+        $images = $useRemote ? $this->remoteImages : $this->localImages;
 
         for ($i = 0; $i < $offers; $i++) {
-            $offerImage = $this->images->store('seed/offers', 'offer-'.Str::uuid());
+            $offerImage = $images->store('seed/offers', 'offer-'.Str::uuid());
             $offer = Offer::factory()->create([
                 'image' => $offerImage,
             ]);
 
             for ($j = 0; $j < $products; $j++) {
-                $productImage = $this->images->store(
+                $productImage = $images->store(
                     'seed/products',
                     'product-'.$offer->id.'-'.Str::uuid()
                 );

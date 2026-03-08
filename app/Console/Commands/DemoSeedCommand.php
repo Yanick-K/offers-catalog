@@ -11,9 +11,9 @@ use function Laravel\Prompts\text;
 
 class DemoSeedCommand extends Command
 {
-    protected $signature = 'demo:seed {--offers= : Number of offers to create} {--products= : Products per offer}';
+    protected $signature = 'demo:seed {--offers= : Number of offers to create} {--products= : Products per offer} {--remote : Use remote images from picsum.photos}';
 
-    protected $description = 'Seed demo offers and products with optional counts.';
+    protected $description = 'Seed demo offers and products with optional counts (use --remote for picsum).';
 
     public function handle(DemoSeedHandler $handler): int
     {
@@ -73,7 +73,9 @@ class DemoSeedCommand extends Command
             return self::FAILURE;
         }
 
-        $handler->handle($offers, $products);
+        $useRemote = (bool) $this->option('remote');
+
+        $handler->handle($offers, $products, $useRemote);
 
         info(sprintf('Seeded %d offers and %d products per offer.', $offers, $products));
 

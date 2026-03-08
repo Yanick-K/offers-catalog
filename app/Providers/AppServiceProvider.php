@@ -12,8 +12,6 @@ use App\Models\Product;
 use App\Models\User;
 use App\Observers\OfferObserver;
 use App\Observers\ProductObserver;
-use App\Policies\OfferPolicy;
-use App\Policies\ProductPolicy;
 use App\Shared\Files\ImageUploader;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -35,8 +33,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::policy(Offer::class, OfferPolicy::class);
-        Gate::policy(Product::class, ProductPolicy::class);
         Gate::define('admin', static fn (User $user): bool => (bool) $user->is_admin);
 
         Offer::observe(OfferObserver::class);
