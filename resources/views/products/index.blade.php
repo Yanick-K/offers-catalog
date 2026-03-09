@@ -11,10 +11,12 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <a href="{{ route('offers.show', $offer->id) }}" class="text-sm text-indigo-600 hover:underline">← Retour à l'offre</a>
+                            <a href="{{ route('offers.show', $offer->id->value) }}" class="text-sm text-indigo-600 hover:underline">← Retour à l'offre</a>
                         </div>
                         <div>
-                            <x-primary-link href="{{ route('offers.products.create', $offer->id) }}">Ajouter un produit</x-primary-link>
+                            @can('admin')
+                                <x-primary-link href="{{ route('offers.products.create', $offer->id->value) }}">Ajouter un produit</x-primary-link>
+                            @endcan
                         </div>
                     </div>
 
@@ -34,7 +36,7 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($products as $product)
                                     <tr>
-                                        <td class="px-4 py-3">{{ $product->id }}</td>
+                                        <td class="px-4 py-3">{{ $product->id->value }}</td>
                                         <td class="px-4 py-3">
                                             @if($product->image)
                                                 <img src="{{ asset('storage/'.$product->image) }}" alt="Image {{ $product->name }}" class="h-12 w-12 object-cover rounded-md border border-gray-200 dark:border-gray-700">
@@ -44,19 +46,23 @@
                                         </td>
                                         <td class="px-4 py-3 font-medium">{{ $product->name }}</td>
                                         <td class="px-4 py-3">{{ $product->sku }}</td>
-                                        <td class="px-4 py-3">{{ number_format((float)$product->price, 2, ',', ' ') }} €</td>
+                                        <td class="px-4 py-3">{{ number_format(\App\Domain\Shared\ValueObjects\Money::fromCents($product->priceInCents)->toFloat(), 2, ',', ' ') }} €</td>
                                         <td class="px-4 py-3">
                                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                                {{ \App\Models\Product::$states[$product->state] ?? $product->state }}
+                                                {{ \App\Domain\Products\ValueObjects\ProductState::labels()[$product->state->value] ?? $product->state->value }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                                            <x-primary-link href="{{ route('offers.products.edit', [$offer->id, $product->id]) }}">Modifier</x-primary-link>
-                                            <form action="{{ route('offers.products.destroy', [$offer->id, $product->id]) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-danger-button onclick="return confirm('Supprimer ce produit ?')">Supprimer</x-danger-button>
-                                            </form>
+                                            @can('admin')
+                                                <x-primary-link href="{{ route('offers.products.edit', [$offer->id->value, $product->id->value]) }}">Modifier</x-primary-link>
+                                            @endcan
+                                            @can('admin')
+                                                <form action="{{ route('offers.products.destroy', [$offer->id->value, $product->id->value]) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <x-danger-button onclick="return confirm('Supprimer ce produit ?')">Supprimer</x-danger-button>
+                                                </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

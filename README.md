@@ -55,7 +55,7 @@ Votre mission est d’améliorer techniquement l’application existante autour 
 - Documentation API (OpenAPI/Swagger), versionnement API, pagination/tri/filtrage RESTful.
 - Optimisations perfs (index DB, N+1, caches, Eager Loading par défaut, Scopes).
 - CI (GitHub Actions) exécutant lint + static analysis + tests.
-- Docker/Sail prêt à l’emploi, Makefile ou scripts pour simplifier les commandes.
+- Makefile ou scripts pour simplifier les commandes.
 - Observers, Events/Listeners, Notifications, Queues (jobs pour traitement d’images par ex.).
 
 ## Critères d’évaluation
@@ -84,35 +84,115 @@ Prérequis
 - Composer 2
 - Node 18+ et npm
 - MySQL/MariaDB (ou SQLite si vous préférez pour l’exercice)
-- Optionnel: Docker + Laravel Sail
 
-Étapes rapides (local hors Docker)
-1. Cloner le repo et installer les dépendances
-   - composer install
-   - npm ci
-2. Copier l’environnement
+Installation
+
+Option rapide:
+
+- `make setup` (copie .env, dépendances, build, key:generate, migrate --seed, storage:link).
+
+Option manuelle
+1. Copier l’environnement
    - cp .env.example .env
    - Configurer la base de données (DB_*) et le stockage local.
-3. Générer la clé d’application
+   - Option SQLite: DB_CONNECTION=sqlite, DB_DATABASE=database/database.sqlite, puis `touch database/database.sqlite`.
+2. Installer et initialiser
+   - composer install
+   - npm ci
+   - npm run build
    - php artisan key:generate
-4. Exécuter les migrations et seeders
    - php artisan migrate --seed
-5. Lier le stockage public
    - php artisan storage:link
-6. Builder les assets (si UI utilisée)
+3. Builder les assets (si UI utilisée)
    - npm run build (ou npm run dev pour le watch)
-7. Lancer l’application
-   - php artisan serve (ou via votre stack locale)
-
-Étapes avec Sail (optionnel)
-1. composer install && cp .env.example .env
-2. ./vendor/bin/sail up -d
-3. ./vendor/bin/sail artisan key:generate
-4. ./vendor/bin/sail artisan migrate --seed
-5. ./vendor/bin/sail artisan storage:link
-6. ./vendor/bin/sail npm ci && ./vendor/bin/sail npm run build
+4. Lancer l’application
+   - make dev
 
 Tests et qualité
-- Lancer les tests: phpunit ou php artisan test
-- Lancer PHPStan: vendor/bin/phpstan analyse --level=8 (ajustez le niveau si vous visez plus)
+- Migrations (si besoin): php artisan migrate
+- Lancer les tests: php artisan test
+- Lancer PHPStan: vendor/bin/phpstan analyse
+- Lancer Deptrac: vendor/bin/deptrac analyse --config-file=deptrac.yaml
+- Lancer Pint (lint): vendor/bin/pint --test
 
+## Notes techniques (ajouts)
+
+### Architecture et séparation
+- DDD light Domain/Application/Infrastructure avec deptrac pour verrouiller les dépendances.
+- Choix assumé pour isoler le domaine des détails Eloquent et garder des frontières testables, tout en restant léger vu la simplicité métier.
+- Domain: Entities, ValueObjects et interfaces de repository (`App\Domain\...`).
+- Application: DTOs + services de commande (`OfferCommandService`, `ProductCommandService`) + queries de lecture (`OfferQuery`, `ProductQuery`).
+- Infrastructure organisée par contexte: `Offers` (repositories + cache), `Products` (repositories), `Shared` (files/seed).
+- Domain/Shared: port `ImageUploader` (contract) pour découpler l'upload d'images.
+
+### Validations et robustesse
+- FormRequests dédiés (create/update/index) avec règles explicites.
+- Service d'upload image isolé (`ImageUploader`) et suppression des anciens fichiers via observers.
+- Pagination ajoutée sur le back-office et l'API; filtres par nom/slug/état.
+- Prix gérés via `Money` (centimes) dans le domaine, convertis pour la persistance et l'affichage.
+
+### Droits et sécurité
+- Gate `admin` basé sur `users.is_admin` pour restreindre le back-office.
+- Compte démo admin: `test@example.com` / `password`.
+- Seul un compte admin a le droit d'accéder au dashboard.
+
+### Observers et audits
+- `OfferObserver` et `ProductObserver` pour la gestion des fichiers et l'invalidation du cache.
+- Table `audit_logs` pour tracer create/update/delete (user + changements).
+- Les anciens fichiers d'image sont supprimés par les observers (tests: `ImageCleanupTest`, `OfferCommandServiceTest`, `ProductCommandServiceTest`).
+
+### Remarque vocabulaire
+- Asymétrie relevée entre `OfferState::Hidden` et `ProductState::Invisible`. Sans clarification métier, cela ressemble à une incohérence de langage du domaine; en contexte réel, il faudrait valider que cette différence est bien intentionnelle.
+
+### Performance
+- Index sur `offers.state` et `products.state`.
+- Cache versionné pour `GET /api/v1/offers`.
+
+### API
+- API Resources (`OfferResource`, `ProductResource`) pour stabiliser le contrat.
+- API versionnée: `GET /api/v1/offers` (et alias legacy `GET /api/offers`).
+- OpenAPI/Swagger: `/docs` (spec dans `public/docs/openapi.yaml`).
+- `GET /api/v1/offers` paginé, accepte `per_page` (1-100) et retourne uniquement les offres/produits publiés.
+
+### Seeders
+- `OfferSeeder` crée un jeu de données cohérent (offres + produits, états variés) avec images locales.
+- Commande `demo:seed --offers=10 --products=5` pour injecter un volume de données à la volée.
+- Option images distantes: `demo:seed --offers=10 --products=5 --remote`.
+- Sans options, `demo:seed` passe en mode interactif.
+
+### Tests ajoutés
+- Unit: `OfferCommandServiceTest`, `ProductCommandServiceTest`.
+- Feature: `OfferManagementTest`, `Api/OfferIndexTest`.
+
+### Outillage
+- Larastan / PHPStan niveau 8 (`phpstan.neon`).
+- Deptrac pour vérifier les dépendances de couches (`deptrac.yaml`).
+- Laravel Pint: `vendor/bin/pint`.
+- Dépendances PHP mises à jour pour corriger des vulnérabilités.
+
+### Commandes de base (local)
+- `make setup`
+- `make dev`
+- `make dev-stop`
+- `make test-all` (ou `make ci`)
+- `make seed OFFERS=10 PRODUCTS=5` (ou `make seed-base`)
+
+Plus d'options dans `tools/README.md`.
+
+### CI
+- GitHub Actions: lint (Pint) + PHPStan + Deptrac + tests.
+
+### Hooks git
+- Activer le hook pre-commit: `git config core.hooksPath .githooks` (puis `pint --test` ou `php-cs-fixer` sont lancés au commit).
+
+### Temps passé
+- Environ 7-8 heures.
+
+### Avec plus de temps
+- Rôles/permissions plus avancés
+- Amélioration du cache.
+- Docker/Sail pour des environnements homogènes.
+- Séparation des responsabilités dans les observers
+- Indexation plus poussée, et recherche de performance SQL plus poussée
+- Mise en place d'un système de queue
+- Meilleur UX/UI

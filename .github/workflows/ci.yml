@@ -1,0 +1,44 @@
+name: PHP CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  php-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: composer:v2
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Lint (Pint)
+        run: vendor/bin/pint --test
+      - name: Static analysis (PHPStan)
+        run: vendor/bin/phpstan analyse
+      - name: Architecture checks (Deptrac)
+        run: vendor/bin/deptrac analyse --config-file=deptrac.yaml
+      - name: Migrations
+        run: php artisan migrate
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:my1gvY90vNLZNn2kFM6fWAHsK/5J/QhzUgjBagGwKI8=
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+      - name: Tests
+        run: php artisan test
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:my1gvY90vNLZNn2kFM6fWAHsK/5J/QhzUgjBagGwKI8=
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_STORE: array
+          SESSION_DRIVER: array

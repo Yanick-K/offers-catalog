@@ -16,7 +16,7 @@
                             </h2>
                         </header>
 
-                        <form method="post" action="{{ route('offers.update', $offer->id) }}" class="mt-6 space-y-6" enctype="multipart/form-data">
+                        <form method="post" action="{{ route('offers.update', $offer->id->value) }}" class="mt-6 space-y-6" enctype="multipart/form-data">
                             @csrf
                             @method('patch')
 
@@ -35,7 +35,7 @@
                             <div>
                                 <x-input-label for="image" value="Image" />
                                 <img src="{{ asset('storage/' . $offer->image) }}" alt="{{ $offer->name }}" class="margin-x-auto h-20" />
-                                <x-file-input id="image" name="image" class="mt-1 block w-full" required />
+                                <x-file-input id="image" name="image" class="mt-1 block w-full" />
                                 <x-input-error class="mt-2" :messages="$errors->get('image')" />
                             </div>
 
@@ -48,9 +48,9 @@
                             <div>
                                 <x-input-label for="state" value="État" />
                                 <x-select id="state" name="state" class="mt-1 block w-full" required>
-                                    <option value="draft" @selected(old('state', $offer->state) == 'draft')>Brouillon</option>
-                                    <option value="published" @selected(old('state', $offer->state) == 'published')>Publié</option>
-                                    <option value="hidden" @selected(old('state', $offer->state) == 'hidden')>Masquée</option>
+                                    @foreach(\App\Domain\Offers\ValueObjects\OfferState::labels() as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('state', $offer->state->value) == $value)>{{ $label }}</option>
+                                    @endforeach
                                 </x-select>
                                 <x-input-error class="mt-2" :messages="$errors->get('state')" />
                             </div>

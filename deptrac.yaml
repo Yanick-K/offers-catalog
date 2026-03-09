@@ -1,0 +1,32 @@
+parameters:
+  paths:
+    - app
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          value: app/Domain/.*
+    - name: Application
+      collectors:
+        - type: directory
+          value: app/Application/.*
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: app/Infrastructure/.*
+    - name: Shared
+      collectors:
+        - type: directory
+          value: app/Shared/.*
+  ruleset:
+    Domain:
+      - Domain
+      - Shared
+    Application:
+      - Domain
+      - Shared
+    Infrastructure:
+      - Domain
+      - Shared
+    Shared:
+      - Shared

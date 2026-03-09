@@ -6,13 +6,15 @@
     "keywords": ["laravel", "framework"],
     "license": "proprietary",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9"
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.2",
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^2.11",
         "laravel/breeze": "^2.3",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",

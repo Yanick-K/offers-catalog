@@ -9,7 +9,7 @@
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form action="{{ route('offers.products.update', [$offer->id, $product->id]) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('offers.products.update', [$offer->id->value, $product->id->value]) }}" method="POST" enctype="multipart/form-data">
                         @method('PATCH')
                         @csrf
 
@@ -37,7 +37,7 @@
                             </div>
                             <div>
                                 <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Prix</label>
-                                <input type="number" step="0.01" min="0" name="price" id="price" value="{{ old('price', $product->price) }}" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
+                                <input type="number" step="0.01" min="0" name="price" id="price" value="{{ old('price', \App\Domain\Shared\ValueObjects\Money::fromCents($product->priceInCents)->toDecimalString()) }}" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 @error('price')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                                 @enderror
@@ -45,8 +45,8 @@
                             <div>
                                 <label for="state" class="block text-sm font-medium text-gray-700 dark:text-gray-300">État</label>
                                 <select name="state" id="state" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
-                                    @foreach(\App\Models\Product::$states as $value => $label)
-                                        <option value="{{ $value }}" @selected(old('state', $product->state) === $value)>{{ $label }}</option>
+                                    @foreach(\App\Domain\Products\ValueObjects\ProductState::labels() as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('state', $product->state->value) === $value)>{{ $label }}</option>
                                     @endforeach
                                 </select>
                                 @error('state')
@@ -56,7 +56,7 @@
                         </div>
 
                         <div class="mt-6 flex items-center justify-end gap-2">
-                            <a href="{{ route('offers.products.index', $offer->id) }}" class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">Annuler</a>
+                            <a href="{{ route('offers.products.index', $offer->id->value) }}" class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">Annuler</a>
                             <x-primary-button>Enregistrer</x-primary-button>
                         </div>
                     </form>

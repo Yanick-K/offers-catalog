@@ -1,74 +1,87 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use App\Models\Offer;
-use Illuminate\Http\Request;
+use App\Application\Offers\DTO\OfferData;
+use App\Application\Offers\Queries\OfferQuery;
+use App\Application\Offers\Services\OfferCommandService;
+use App\Http\Controllers\Concerns\BuildsImageUploads;
+use App\Http\Controllers\Concerns\ResolvesDomainIds;
+use App\Http\Requests\Offer\StoreOfferRequest;
+use App\Http\Requests\Offer\UpdateOfferRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class OfferController extends Controller
 {
-    public function create()
+    use BuildsImageUploads;
+    use ResolvesDomainIds;
+
+    public function create(): View
     {
+        $this->authorize('admin');
+
         return view('offers.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreOfferRequest $request, OfferCommandService $service): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:offers,slug'],
-            'image' => ['required', 'image'],
-            'description' => ['nullable', 'string', 'max:255'],
-            'state' => ['required', 'string', 'in:draft,published,hidden'],
-        ]);
+        $this->authorize('admin');
 
-        Offer::create([
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'image' => $request->image->store('offers', ['disk' => 'public']),
-            'description' => $request->description,
-            'state' => $request->state,
-        ]);
+        /** @var array{name: string, slug: string, description?: string|null, state: string} $validated */
+        $validated = $request->validated();
+        $data = OfferData::fromArray($validated, $this->toImageUpload($request->file('image')));
+        $service->create($data);
 
         return redirect()->route('dashboard');
     }
 
-    public function edit($offerId)
+    public function edit(string $offerId, OfferQuery $query): View
     {
-        return view('offers.edit', [
-            'offer' => Offer::find($offerId),
-        ]);
+        $this->authorize('admin');
+
+        $offer = $query->find($this->offerIdFromRoute($offerId));
+        if (! $offer) {
+            abort(404);
+        }
+
+        return view('offers.edit', compact('offer'));
     }
 
-    public function update(Request $request, $offerId)
+    public function update(UpdateOfferRequest $request, string $offerId, OfferCommandService $service): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255'],
-            'image' => ['required', 'file'],
-            'description' => ['nullable', 'string', 'max:255'],
-            'state' => ['required', 'string', 'in:draft,published,hidden'],
-        ]);
+        $this->authorize('admin');
 
-        Offer::find($offerId)->update($request->all('name', 'slug', 'description', 'state'));
-
-        if ($request->hasFile('image')) {
-            Offer::find($offerId)->update(['image' => $request->file('image')->store('offers', ['disk' => 'public'])]);
+        /** @var array{name: string, slug: string, description?: string|null, state: string} $validated */
+        $validated = $request->validated();
+        $data = OfferData::fromArray($validated, $this->toImageUpload($request->file('image')));
+        $updated = $service->update($this->offerIdFromRoute($offerId), $data);
+        if (! $updated) {
+            abort(404);
         }
 
         return redirect()->route('dashboard');
     }
 
-    public function destroy($offerId)
+    public function destroy(string $offerId, OfferCommandService $service): RedirectResponse
     {
-        Offer::where('id', $offerId)->delete();
+        $this->authorize('admin');
+
+        $service->delete($this->offerIdFromRoute($offerId));
 
         return redirect()->route('dashboard');
     }
 
-    public function show(string $offerId)
+    public function show(string $offerId, OfferQuery $query): View
     {
-        $offer = Offer::with('products')->findOrFail($offerId);
+        $this->authorize('admin');
+
+        $offer = $query->find($this->offerIdFromRoute($offerId));
+        if (! $offer) {
+            abort(404);
+        }
 
         return view('offers.show', compact('offer'));
     }

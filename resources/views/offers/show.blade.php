@@ -21,7 +21,7 @@
                             <div class="flex items-center gap-3">
                                 <h3 class="text-2xl font-semibold">{{ $offer->name }}</h3>
                                 <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                    {{ \App\Models\Offer::$states[$offer->state] ?? $offer->state }}
+                                    {{ \App\Domain\Offers\ValueObjects\OfferState::labels()[$offer->state->value] ?? $offer->state->value }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Slug: <span class="font-mono">{{ $offer->slug }}</span></p>
@@ -30,8 +30,10 @@
                             @endif
 
                             <div class="mt-4 flex gap-2">
-                                <x-primary-link href="{{ route('offers.edit', $offer->id) }}">Modifier l'offre</x-primary-link>
-                                <x-secondary-link href="{{ route('offers.products.index', $offer->id) }}">Gérer les produits</x-secondary-link>
+                                @can('admin')
+                                    <x-primary-link href="{{ route('offers.edit', $offer->id->value) }}">Modifier l'offre</x-primary-link>
+                                    <x-secondary-link href="{{ route('offers.products.index', $offer->id->value) }}">Gérer les produits</x-secondary-link>
+                                @endcan
                                 <a href="{{ route('dashboard') }}" class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">Retour</a>
                             </div>
                         </div>
@@ -54,7 +56,7 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($offer->products as $product)
                                     <tr>
-                                        <td class="px-4 py-3">{{ $product->id }}</td>
+                                        <td class="px-4 py-3">{{ $product->id->value }}</td>
                                         <td class="px-4 py-3">
                                             @if($product->image)
                                                 <img src="{{ asset('storage/'.$product->image) }}" alt="Image {{ $product->name }}" class="h-12 w-12 object-cover rounded-md border border-gray-200 dark:border-gray-700">
@@ -64,10 +66,10 @@
                                         </td>
                                         <td class="px-4 py-3 font-medium">{{ $product->name }}</td>
                                         <td class="px-4 py-3">{{ $product->sku }}</td>
-                                        <td class="px-4 py-3">{{ number_format((float)$product->price, 2, ',', ' ') }} €</td>
+                                        <td class="px-4 py-3">{{ number_format(\App\Domain\Shared\ValueObjects\Money::fromCents($product->priceInCents)->toFloat(), 2, ',', ' ') }} €</td>
                                         <td class="px-4 py-3">
                                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                                {{ \App\Models\Product::$states[$product->state] ?? $product->state }}
+                                                {{ \App\Domain\Products\ValueObjects\ProductState::labels()[$product->state->value] ?? $product->state->value }}
                                             </span>
                                         </td>
                                     </tr>

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -x "./vendor/bin/pint" ]; then
+  ./vendor/bin/pint --test
+  exit 0
+fi
+
+if [ -x "./vendor/bin/php-cs-fixer" ]; then
+  ./vendor/bin/php-cs-fixer fix --dry-run --diff
+  exit 0
+fi
+
+echo "No Pint or PHP-CS-Fixer binary found in vendor/bin." >&2
+exit 1

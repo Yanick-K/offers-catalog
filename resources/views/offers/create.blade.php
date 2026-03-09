@@ -46,9 +46,9 @@
                             <div>
                                 <x-input-label for="state" value="État" />
                                 <x-select id="state" name="state" class="mt-1 block w-full" required>
-                                    <option value="draft" @selected(old('state') == 'draft')>Brouillon</option>
-                                    <option value="published" @selected(old('state') == 'published')>Publié</option>
-                                    <option value="hidden" @selected(old('state') == 'hidden')>Masquée</option>
+                                    @foreach(\App\Domain\Offers\ValueObjects\OfferState::labels() as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('state') == $value)>{{ $label }}</option>
+                                    @endforeach
                                 </x-select>
                                 <x-input-error class="mt-2" :messages="$errors->get('state')" />
                             </div>
